@@ -1,0 +1,17 @@
+# Secrets
+research_config.jsonc
+
+# Data directories (local working data)
+topics/
+subjects/
+codebase/
+scripts/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# OS
+.DS_Store
