@@ -5,25 +5,12 @@
     // Runner backend: "pai" or "ssh"
     "runner": "pai",
 
-    // Paths
-    "paths": {
-        "user_home": "/your/home/path",
-        "project_root": "/your/home/path/rl_auto_research_v2",
-    },
-
     // Alibaba Cloud PAI (required when runner = "pai")
     "alibaba_cloud": {
         "access_key_id": "YOUR_ACCESS_KEY_ID",
         "access_key_secret": "YOUR_ACCESS_KEY_SECRET",
         "region_id": "cn-beijing",
         "workspace_id": 0
-    },
-
-    // API Keys
-    "api_keys": {
-        "bestapi": "sk-YOUR_BESTAPI_KEY",
-        "swanlab": "YOUR_SWANLAB_KEY",
-        "benchmark_access_token": "YOUR_BENCHMARK_TOKEN"
     },
 
     // PAI DLC job template defaults (required when runner = "pai")

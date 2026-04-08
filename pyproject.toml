@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rl-auto-research"
+version = "0.1.0"
+description = "Automated RL research system with leader-worker architecture"
+requires-python = ">=3.10"
+dependencies = [
+    "alibabacloud_tea_openapi",
+    "alibabacloud_credentials",
+    "alibabacloud_pai_dlc20201203",
+    "alibabacloud_aiworkspace20210204",
+    "kite-strings",
+    "beast_logger",
+    "commentjson",
+    "psutil",
+]
+
+[project.scripts]
+alpha-rl-research = "rl_auto_research.opencode_runner:main"
+alpha-run-blueprint = "rl_auto_research.blueprint_runner.blueprint_runner:run_blueprint"
+alpha-scan-jobs = "rl_auto_research.blueprint_runner.scan_jobs:main"
+alpha-stop-jobs = "rl_auto_research.blueprint_runner.stop_jobs:main"
+
+# Convenience aliases matching begin_research.bash
+alpha-rl-new-planning = "rl_auto_research.cli:new_planning"
+alpha-rl-resume-planning = "rl_auto_research.cli:resume_planning"
+alpha-rl-begin-experiments = "rl_auto_research.cli:begin_experiments"
+alpha-rl-resume-experiment = "rl_auto_research.cli:resume_experiment"
+alpha-rl-new-research-no-human = "rl_auto_research.cli:new_research_no_human"

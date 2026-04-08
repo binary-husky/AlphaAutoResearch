@@ -72,7 +72,11 @@ class SshExperimentSubagent(ExperimentSubagent):
         return hosts[0]
 
     def _build_launch_command(self, blueprint_path: str, session_name: str) -> str:
-        project_root = config["paths"]["project_root"]
+
+        project_root = os.path.join(os.path.abspath(
+            os.path.dirname(__file__)
+        ), "..", "..")
+
         still_training = f"/tmp/still_training_{session_name}"
 
         setup = ""

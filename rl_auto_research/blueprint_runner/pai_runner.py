@@ -17,7 +17,9 @@ from rl_auto_research.blueprint_runner.base import ExperimentSubagent
 class PaiExperimentSubagent(ExperimentSubagent):
 
     def _build_user_command(self, blueprint_path: str) -> str:
-        project_root = config["paths"]["project_root"]
+        project_root = os.path.join(os.path.abspath(
+            os.path.dirname(__file__)
+        ), "..", "..")
 
         return dedent(f"""
             rm -rf /root/.local/share/uv && ln -s /mnt/data_cpfs/qingxu.fu/root/.local/share/uv /root/.local/share/uv

@@ -221,15 +221,25 @@ def _check_ssh_connectivity() -> None:
 
 def run(research_topic: str = "", blueprint:str="", mod: str = "",
         resume_latest_session: bool = False, resume_instruction: str = "",
-        only_run_planning: bool = False, skip_permissions: bool = False) -> int:
+        only_run_planning: bool = False, skip_permissions: bool = False,
+        no_human_in_the_loop: bool = False) -> int:
 
     _check_ssh_connectivity()
 
     if only_run_planning:
         assert mod == "leader", "only_run_planning mode is only applicable for leader mode"
 
+    if no_human_in_the_loop:
+        assert mod == "leader", "--no-human-in-the-loop is only applicable for leader mode"
+        assert not only_run_planning, "--no-human-in-the-loop conflicts with --only-run-planning"
+        assert not resume_latest_session, "--no-human-in-the-loop conflicts with --resume"
+        assert not resume_instruction, "--no-human-in-the-loop conflicts with --resume-instruction"
+
     if mod == "leader":
-        leader_skill_path = "skills/leader_experiment.md"
+        if no_human_in_the_loop:
+            leader_skill_path = "skills/leader_experiment.no_human.md"
+        else:
+            leader_skill_path = "skills/leader_experiment.md"
         leader_skill_path = os.path.abspath(leader_skill_path)
         assert os.path.exists(leader_skill_path), f"skill not found: {leader_skill_path}"
 
@@ -343,6 +353,8 @@ def main():
         sp.add_argument("--resume-instruction", default="", help="Instruction for resuming")
         sp.add_argument("--only-run-planning", action="store_true", help="Run once and exit")
         sp.add_argument("--skip-permissions", action="store_true", help="Use permissive opencode config (allow all tools)")
+        if sp_name == "leader":
+            sp.add_argument("--no-human-in-the-loop", action="store_true", help="Run fully autonomous without human review (uses no_human skill)")
     args = parser.parse_args()
 
     rc = run(
@@ -353,6 +365,7 @@ def main():
         resume_instruction=args.resume_instruction,
         only_run_planning=args.only_run_planning,
         skip_permissions=args.skip_permissions,
+        no_human_in_the_loop=getattr(args, "no_human_in_the_loop", False),
     )
     sys.exit(rc)
 
