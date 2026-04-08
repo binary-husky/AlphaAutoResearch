@@ -5,24 +5,15 @@ Reads research_config.jsonc from the project root.
 Usage: from rl_auto_research.config import config
 """
 
-import json
+import commentjson as json
 import os
-import re
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _CONFIG_PATH = os.path.join(_PROJECT_ROOT, "research_config.jsonc")
 
 
-def _strip_jsonc_comments(text: str) -> str:
-    """Remove // comments from JSONC text."""
-    lines = []
-    for line in text.splitlines():
-        stripped = line.lstrip()
-        if stripped.startswith("//"):
-            continue
-        line = re.sub(r'(?<=["\d\]\}\w])\s*//.*$', '', line)
-        lines.append(line)
-    return "\n".join(lines)
+def dummy(text: str) -> str:
+    return text
 
 
 def _load_config() -> dict:
@@ -33,7 +24,7 @@ def _load_config() -> dict:
         )
     with open(_CONFIG_PATH, "r") as f:
         raw = f.read()
-    return json.loads(_strip_jsonc_comments(raw))
+    return json.loads(dummy(raw))
 
 
 config = _load_config()

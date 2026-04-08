@@ -20,13 +20,26 @@ import os
 import subprocess
 import sys
 import time
-
+from beast_logger import print_dict
 
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
 
-def _get_latest_opencode_session_id() -> str | None:
+def _get_opencode_sessions() -> dict[str, str]:
+    """Return a dict mapping session ID -> title for all current opencode sessions."""
+    result = subprocess.run(
+        ["opencode", "session", "list", "--format=json"],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        return {}
+    sessions = json.loads(result.stdout)
+    return {s["id"]: s.get("title", "") for s in sessions}
+
+
+def _get_latest_opencode_session() -> tuple[str, str] | None:
+    """Return (id, title) of the most recently updated session, or None."""
     result = subprocess.run(
         ["opencode", "session", "list", "--format=json"],
         capture_output=True, text=True,
@@ -37,7 +50,7 @@ def _get_latest_opencode_session_id() -> str | None:
     if not sessions:
         return None
     latest = max(sessions, key=lambda s: s["updated"])
-    return latest["id"]
+    return latest["id"], latest.get("title", "")
 
 
 def _prepare_yolo_config():
@@ -63,7 +76,12 @@ def _prepare_yolo_config():
 
 def run_opencode(args: list[str], *, continue_mode=False, session_id=None,
                  need_permission_error_fix=False, resume_instruction="",
-                 skip_permissions=False) -> tuple[int, bool]:
+                 skip_permissions=False) -> tuple[int, bool, str | None]:
+    """Run opencode and return (returncode, terminated_due_to_permission, session_id).
+
+    When starting a new session (not continue_mode), detects the newly created
+    session ID right after the process spawns so it can be reused for resuming.
+    """
     cmd = ["opencode"] + args
 
     if continue_mode:
@@ -83,9 +101,31 @@ def run_opencode(args: list[str], *, continue_mode=False, session_id=None,
         yolo_config = _prepare_yolo_config()
         env = {**os.environ, "OPENCODE_CONFIG": yolo_config}
 
+    # Snapshot existing sessions before spawning so we can detect the new one
+    existing_sessions = _get_opencode_sessions() if not continue_mode else {}
+
     print("[controller message]: executing", " ".join(cmd))
     print("[controller message]: using envs", env)
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
+
+    # Detect new session ID right after spawn (only for new sessions)
+    detected_session_id = session_id  # keep existing for continue_mode
+    if not continue_mode:
+        for _ in range(30):  # poll for up to 30 seconds
+            print("[controller message]: detecting new session ID...")
+            time.sleep(1)
+            current_sessions = _get_opencode_sessions()
+            new_session_ids = set(current_sessions) - set(existing_sessions)
+            if new_session_ids:
+                detected_session_id = new_session_ids.pop()
+                title = current_sessions[detected_session_id]
+                print_dict({"session_id": detected_session_id, "title": title}, header="Created new session")
+                break
+        else:
+            raise RuntimeError("Failed to detect new opencode session ID after 30s. Aborting.")
+    else:
+        print_dict({"session_id": session_id}, header="Resume old session")
+
 
     terminated_due_to_permission = False
     for stream in (process.stdout, process.stderr):
@@ -98,7 +138,7 @@ def run_opencode(args: list[str], *, continue_mode=False, session_id=None,
 
     process.wait()
     print(f"[controller message]: Return code: {process.returncode}, permission_error={terminated_due_to_permission}")
-    return process.returncode, terminated_due_to_permission
+    return process.returncode, terminated_due_to_permission, detected_session_id
 
 
 def _is_opencode_web_running() -> bool:
@@ -154,7 +194,31 @@ def _should_continue(terminated_due_to_permission: bool, running_flag: str) -> b
         return False
 
 
+def _check_ssh_connectivity() -> None:
+    """Verify SSH connectivity to all configured hosts before starting. Exits on failure."""
+    from rl_auto_research.config import config
+    if config.get("runner") != "ssh":
+        return
+    from rl_auto_research.blueprint_runner.ssh_runner import _run_cmd
+    hosts = config.get("ssh", {}).get("hosts", [])
+    if not hosts:
+        print("[controller message]: WARNING: runner is 'ssh' but no hosts configured.")
+        return
+    for host_cfg in hosts:
+        label = f"{host_cfg.get('user', 'root')}@{host_cfg['host']}:{host_cfg.get('port', 22)}"
+        print(f"[controller message]: Checking SSH connectivity to {label} ...")
+        result = _run_cmd(host_cfg, "echo ok")
+        if result.returncode != 0:
+            print(f"[controller message]: ERROR: SSH connection to {label} failed!")
+            print(f"  stdout: {result.stdout.strip()}")
+            print(f"  stderr: {result.stderr.strip()}")
+            sys.exit(1)
+        print(f"[controller message]: SSH connection to {label} OK.")
+
+
 def run(research_topic: str = "", blueprint:str="", mod: str = "", resume_latest_session: bool = False, resume_instruction: str = "", only_run_planning: bool = False, skip_permissions: bool = False) -> int:
+
+    _check_ssh_connectivity()
 
     if only_run_planning:
         assert mod == "leader", "only_run_planning mode is only applicable for leader mode"
@@ -179,6 +243,7 @@ def run(research_topic: str = "", blueprint:str="", mod: str = "", resume_latest
             f"Experiment skill: {leader_skill_path}\n"
             f"After all experiments are complete and the final report is written, please delete {running_flag}\n"
             f"{research_topic}\n"
+            f"{resume_instruction}\n"
         )
 
         if only_run_planning:
@@ -207,10 +272,18 @@ def run(research_topic: str = "", blueprint:str="", mod: str = "", resume_latest
     run_args = ["run", f"--attach=http://localhost:4096", prompt]
 
     print("[controller message]: run opencode 1st ...")
+    session_id = None
     if resume_latest_session:
         terminated_due_to_permission = False
+        latest = _get_latest_opencode_session()
+        if latest:
+            session_id, title = latest
+            print_dict({"session_id": session_id, "title": title}, header="Resuming latest session")
+        else:
+            raise RuntimeError("No opencode session found to resume.")
     else:
-        returncode, terminated_due_to_permission = run_opencode(run_args, skip_permissions=skip_permissions)
+        returncode, terminated_due_to_permission, session_id = run_opencode(run_args, skip_permissions=skip_permissions)
+        print(f"[controller message]: Session ID from first run: {session_id}")
         if only_run_planning:
             return returncode
 
@@ -218,9 +291,8 @@ def run(research_topic: str = "", blueprint:str="", mod: str = "", resume_latest
     # begin opencode agent
     while _should_continue(terminated_due_to_permission, running_flag):
         print("[controller message]: Continuing session ...")
-        session_id = _get_latest_opencode_session_id()
         if session_id:
-            returncode, terminated_due_to_permission = run_opencode(
+            returncode, terminated_due_to_permission, _ = run_opencode(
                 run_args, continue_mode=True, session_id=session_id,
                 need_permission_error_fix=terminated_due_to_permission,
                 resume_instruction=resume_instruction,

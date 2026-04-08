@@ -21,7 +21,7 @@ An experiment blueprint is a markdown file (blueprint.md). It contains 7 section
 4. [exp_yaml_path] Experiment config file path (relative path, relative to the main experiment code path):
     Path to the experiment configuration YAML file. This file must be located within the main experiment code path. E.g.: /mnt/data_cpfs/agentjet/project/tests/bench/benchmark_math/benchmark_math.yaml
 5. [exp_launch_command] Training execution command (string):
-    E.g. python -m ajet.launcher --conf tests/bench/benchmark_math/benchmark_math.yaml --autokill
+    E.g. python -m ajet.launcher --conf tests/bench/benchmark_math/benchmark_math.yaml
 6. [exp_result_dir] Result data storage path (absolute path):
     Path for output data storage
 7. [exp_max_time] Maximum runtime is ${MaxTime}; each experiment is forcefully terminated after ${MaxTime}
@@ -184,7 +184,7 @@ You must ensure the experiment continues running throughout the [exp_max_time] p
     goto
     /foo/bar/venv
     run with venv and monitor
-    source .venv/bin/activate && python -m ajet.launcher --conf tests/bench/benchmark_math/benchmark_math.yaml --autokill
+    source .venv/bin/activate && python -m ajet.launcher --conf tests/bench/benchmark_math/benchmark_math.yaml
     --- example user instruction end ---
 
     --- example agent reaction begin ---
@@ -215,7 +215,7 @@ You must ensure the experiment continues running throughout the [exp_max_time] p
     ...
 
     # Start training with venv and launcher
-    $ tmux send-keys -t ajet_session "source .venv/bin/activate && python -m ajet.launcher --conf tests/bench/benchmark_math/benchmark_math.yaml --autokill" Enter
+    $ tmux send-keys -t ajet_session "source .venv/bin/activate && python -m ajet.launcher --conf tests/bench/benchmark_math/benchmark_math.yaml" Enter
     ...
 
     # Capture initial training output
