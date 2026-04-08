@@ -19,3 +19,4 @@ __pycache__/
 subject*
 *.running_flag
 daemon_logs
+*.egg-info
