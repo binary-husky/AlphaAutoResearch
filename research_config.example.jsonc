@@ -36,7 +36,7 @@
 
     // Remote monitoring via kite-client (optional)
     "remote_monitor": {
-        "remote_url": "https://cloud-16.agent-matrix.com",
+        "remote_url": "https://your.kite_strings.server.com",
         "api_key": "test-secret-api-key"
     },
 

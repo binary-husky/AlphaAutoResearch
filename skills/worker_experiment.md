@@ -95,7 +95,7 @@ You must ensure the experiment continues running throughout the [exp_max_time] p
 
     Create a sleep script for tmux monitoring:
 
-    1. Create `./tmp/wait_tmux.py`
+    1. Create `./tmux_wait.py`
 
     ```python
     import argparse
@@ -151,7 +151,7 @@ You must ensure the experiment continues running throughout the [exp_max_time] p
     When you need to monitor a tmux window, run:
 
     ```bash
-    python ./tmp/tmux_wait.py my_ajet_session_name 30
+    python ./tmux_wait.py my_ajet_session_name 30
     ```
 
     This means:
@@ -208,7 +208,7 @@ You must ensure the experiment continues running throughout the [exp_max_time] p
     3. Activate a virtual environment and run a Python command
     4. Monitor the tmux session
 
-    # Write ./tmp/tmux_wait.py
+    # Write tmux_wait.py
     ....
 
     # Create tmux session for training (note: session name must contain the keyword `ajet`)
@@ -220,7 +220,7 @@ You must ensure the experiment continues running throughout the [exp_max_time] p
     ...
 
     # Wait and check SSH connection
-    $ python3 /tmp/tmux_wait.py ajet_session 10 && tmux capture-pane -t ajet_session -p | tail -20
+    $ python3 ./tmux_wait.py ajet_session 10 && tmux capture-pane -t ajet_session -p | tail -20
     SSH connected successfully. Now I need to navigate to the directory and run the training command. Let me send the commands to the tmux session.
     ...
 
@@ -237,21 +237,21 @@ You must ensure the experiment continues running throughout the [exp_max_time] p
     ...
 
     # Wait 30s and check training progress
-    $ python3 /tmp/tmux_wait.py ajet_session 30 && tmux capture-pane -t ajet_session -p | tail -50
+    $ python3 ./tmux_wait.py ajet_session 30 && tmux capture-pane -t ajet_session -p | tail -50
     ...
     Training is running. The command is executing properly. Let me continue monitoring at 1 minute intervals.
 
     # Wait 1min and check training progress
-    $ python3 /tmp/tmux_wait.py ajet_session 60 && tmux capture-pane -t ajet_session -p | tail -50
+    $ python3 ./tmux_wait.py ajet_session 60 && tmux capture-pane -t ajet_session -p | tail -50
     ...
 
     # Wait 2min and check training progress
-    $ python3 /tmp/tmux_wait.py ajet_session 120 && tmux capture-pane -t ajet_session -p | tail -60
+    $ python3 ./tmux_wait.py ajet_session 120 && tmux capture-pane -t ajet_session -p | tail -60
     ...
     Training is progressing well. Checkpoints loaded, vLLM server started, swanlab is tracking the run. No errors so far, just warnings. Let me continue monitoring.
 
     # Wait 4min and check training progress
-    $ python3 /tmp/tmux_wait.py ajet_session 240 && tmux capture-pane -t ajet_session -p | tail -60
+    $ python3 ./tmux_wait.py ajet_session 240 && tmux capture-pane -t ajet_session -p | tail -60
     ...
 
     ... multiple monitoring rounds ...
