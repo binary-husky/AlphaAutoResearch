@@ -1,8 +1,43 @@
-# alpha_auto_research
+# Alpha Auto Research
 
-Automated RL research system with a leader-worker architecture, powered by [OpenCode](https://github.com/anthropics/opencode) AI agents.
+[中文版 (Chinese Version)](README.ZH.md)
 
-A **leader agent** designs research plans, dispatches experiments, reviews results, and iterates — while **worker agents** execute individual training runs on distributed compute backends. The system supports Alibaba Cloud PAI DLC and SSH-based clusters.
+> Let AI agents autonomously complete the full research loop: **propose hypotheses -> design experiments -> dispatch training -> analyze results -> write reports**. Submit a research topic before bed, wake up to a finished report.
+
+Alpha Auto Research is an automated RL research system built on a **Leader-Worker architecture**. A **leader agent** reads a natural-language research topic, designs multi-stage experiment plans, generates structured experiment blueprints, dispatches them to GPU clusters, monitors progress, collects results, and writes analysis reports — while **worker agents** execute individual training runs on distributed compute backends.
+
+The system is powered by [OpenCode](https://github.com/anthropics/opencode) AI agents and [AgentJet](https://github.com/modelscope/AgentJet) (an open-source RL training framework by ModelScope). It supports Alibaba Cloud PAI DLC and SSH-based clusters as compute backends. **No expensive frontier models required** — the entire system runs on affordable LLM APIs like [MiniMax M2.7](https://www.minimax.io/) (Plus plan at ~98 RMB/month, ~100 TPS, only 1/7 the price of Claude 5x — not a sponsored ad, M2.7 is genuinely good). Run autonomous research overnight while you vibe code during the day.
+
+## Key Features
+
+- **End-to-end autonomous research**: From topic to conclusion with zero human intervention
+- **Leader-Worker architecture**: Leader designs experiments and analyzes results; Workers execute training on GPU clusters
+- **Blueprint-based coordination**: Structured markdown "contracts" between Leader and Worker ensure reproducibility
+- **Multi-backend support**: Alibaba Cloud PAI DLC or SSH-based clusters, switchable with a single flag (`--runner`)
+- **Robust unattended operation**: Auto-recovery from API timeouts, GPU contention, network issues, and agent crashes — runs for days without manual restarts
+- **Cost-efficient**: Powered exclusively by affordable LLM APIs (e.g., MiniMax M2.7 at ~98 RMB/month) — run overnight experiments for less than a cup of coffee
+- **Human-in-the-loop or fully autonomous**: Review and refine plans before execution, or let the system run end-to-end
+
+## Real-World Results: 6 Research Topics Completed Autonomously
+
+The system has been validated on **6 independent research topics**, all completed autonomously by AI agents — from topic submission to final report, with zero human intervention. Here are the highlights:
+
+| # | Research Topic | Key Finding | Model | Duration |
+|---|---|---|---|---|
+| 1 | AppWorld `max_steps` hyperparameter search | `max_steps=15` is optimal: same accuracy as 25, but **40% faster** (efficiency 1.87x) | Qwen2.5-14B | ~8h overnight |
+| 2 | LoRA Rank & Alpha for math reasoning | `rank=32, alpha=64` is the sweet spot: rank 8→32 gives +15.1%, but 32→128 only +1.3% (diminishing returns) | Qwen2.5-7B | ~6h |
+| 3 | Qwen3 multi-scale comparison (GSM8K) | **14B beats 32B** (94.67% vs 92.87%) — bigger is not always better; 8B shows the highest learning efficiency (+34.93%) | Qwen3-8B/14B/32B | ~12h |
+| 4 | Countdown math reasoning | 8B achieves a **3x performance leap** (26.78% → 83.64%), nearly closing the gap with 14B | Qwen3-8B/14B/32B | ~12h |
+| 5 | Learn2Ask medical dialogue | 14B wins again (82.14%); agent auto-diagnosed an API key failure and generated a detailed error report | Qwen3-8B/14B | ~8h |
+| 6 | Training anomaly detection mechanisms | Studied `compute_madness_checklist`, `agent_madness_termination`, and `agent_madness_reward` effects on training stability | Qwen2.5-7B | ~3h |
+
+**What the AI research agent did well:**
+- Designed efficient experiment plans (e.g., testing 3 strategic values instead of brute-force grid search)
+- Pre-planned decision trees before running experiments ("if result is A, do X; if B, do Y")
+- Knew when to stop — didn't waste compute on unnecessary follow-up stages when evidence was already sufficient
+- Honestly reported limitations (incomplete training, lack of statistical significance, etc.)
+
+> For a detailed walkthrough with figures and analysis, see the full blog post: [`subject_ajet_appworld_step_study/auto_research_blog.md`](subject_ajet_appworld_step_study/auto_research_blog.md)
 
 ## Quick Start
 
@@ -28,11 +63,11 @@ git clone https://github.com/modelscope/AgentJet.git codebase/agentjet
 ### 4. Run
 
 ```bash
-# Plan a new research topic
-alpha-rl-new-planning --research-topic="research_topic/my_topic.md"
+# Plan a new research topic (using SSH backend)
+alpha-rl-new-planning --runner=ssh --research-topic="research_topic/my_topic.md"
 
 # Review the plan, then begin experiments
-alpha-rl-begin-experiments \
+alpha-rl-begin-experiments --runner=ssh \
     --research-topic="research_topic/my_topic.md" \
     --resume-instruction="permission granted, begin research"
 ```
@@ -51,7 +86,7 @@ After `pip install -e .`, the following commands are available:
 | `alpha-rl-resume-experiment` | Resume interrupted experiment execution |
 | `alpha-rl-new-research-no-human` | Fully autonomous research, no human review |
 
-All accept `--research-topic=<path>`. The `--resume-instruction=<text>` flag is available on all except `alpha-rl-new-research-no-human`.
+All accept `--research-topic=<path>` and `--runner=<ssh|pai>` (required). The `--resume-instruction=<text>` flag is available on all except `alpha-rl-new-research-no-human`.
 
 ### Core Commands
 
@@ -77,7 +112,46 @@ All accept `--research-topic=<path>`. The `--resume-instruction=<text>` flag is 
                            --resume, and --resume-instruction)
 ```
 
-## Workflow
+## Architecture
+
+### Leader Agent (the "brain")
+
+The Leader Agent receives a natural-language research topic and autonomously:
+
+1. **Parses the topic** — identifies variables to compare and controls to hold fixed
+2. **Designs multi-stage experiments** — coarse-to-fine progressive search with pre-planned decision branches ("if result is A, do X; if B, do Y")
+3. **Generates experiment blueprints** — structured markdown documents containing everything a Worker needs
+4. **Dispatches to GPU clusters** — runs multiple experiments in parallel via PAI DLC or SSH
+5. **Monitors progress** — polls experiment status at regular intervals
+6. **Analyzes results** — reads metrics, generates comparison charts, writes conclusions
+7. **Iterates or terminates** — follows the decision tree to decide if another round is needed or the evidence is sufficient
+
+### Worker Agent (the "hands")
+
+Each Worker Agent runs on an independent GPU node:
+
+- Sets up the environment per the blueprint
+- Launches training and monitors with adaptive polling intervals
+- Auto-recovers from GPU contention, process crashes, and resource conflicts
+- Reports results (success or failure) so the Leader never waits indefinitely
+
+### Blueprint: the contract between Leader and Worker
+
+Blueprints are structured markdown files with **7 standard sections** that serve as the communication protocol:
+
+| Section | Purpose |
+|---|---|
+| `[exp_purpose]` | Hypothesis being tested, and how this experiment differs from others |
+| `[exp_codebase_dir]` | Absolute path to experiment code |
+| `[exp_venv_exe]` | Path to Python executable / virtual environment |
+| `[exp_yaml_path]` | Path to training config YAML |
+| `[exp_launch_command]` | Command to start training |
+| `[exp_result_dir]` | Output directory for results |
+| `[exp_max_time]` | Maximum allowed runtime |
+
+An optional **notes section** can include environment setup steps, config references, and **pre-experiment hypotheses** — so the analysis can judge whether results matched expectations rather than rationalizing after the fact.
+
+### Workflow
 
 ```
  Research Topic (.md)
@@ -85,7 +159,7 @@ All accept `--research-topic=<path>`. The `--resume-instruction=<text>` flag is 
         v
   +-- LEADER AGENT --+
   |  1. Read topic    |
-  |  2. Design plan   |  <--- User reviews & confirms
+  |  2. Design plan   |  <--- User reviews & confirms (optional)
   |  3. Generate      |
   |     blueprints    |
   +--------+----------+
@@ -112,13 +186,22 @@ All accept `--research-topic=<path>`. The `--resume-instruction=<text>` flag is 
   +-------------------+
 ```
 
+### Robustness: run for days without human intervention
+
+- **Auto-resume on crash**: A guardian loop wraps each agent. When an agent is interrupted (API timeout, network issue, context overflow), it automatically resumes from the breakpoint with full conversation history
+- **Tolerates LLM service outages**: If the LLM API is rate-limited or temporarily unavailable, the system waits patiently and resumes seamlessly once service recovers — even after hours of downtime
+- **Self-healing Workers**: GPU contention? Reallocate. Training process died? Restart. Zombie processes? Clean up automatically
+- **Permission-aware**: Detects permission denials and suggests alternative approaches; supports "full trust" mode for fully unattended operation
+
 ## Runner Backends
 
-The `--runner` CLI argument selects the compute backend (`ssh` or `pai`).
+The `--runner` CLI argument selects the compute backend (`ssh` or `pai`). Both backends expose the same interface to the Leader Agent — submit blueprint, wait for results, collect data — so **switching backends requires changing only one flag**, with zero impact on the research workflow.
+
+> **Tip**: Debug and iterate on a local SSH server first, then switch to `--runner=pai` to scale the same research topic to cloud GPUs seamlessly.
 
 ### SSH (`--runner ssh`)
 
-Launches workers on SSH-accessible machines via tmux sessions. Configure hosts in the `ssh` section:
+Launches workers on SSH-accessible machines via tmux sessions. Ideal for teams with their own GPU servers — zero additional cost. Configure hosts in the `ssh` section:
 
 ```jsonc
 "ssh": {
@@ -130,9 +213,9 @@ Launches workers on SSH-accessible machines via tmux sessions. Configure hosts i
 
 Supports localhost with automatic SSH key setup.
 
-### PAI DLC (`--runner pai`)
+### Alibaba Cloud PAI DLC (`--runner pai`)
 
-Launches workers as Alibaba Cloud PAI DLC jobs by cloning a template job. Configure credentials and job defaults in the `alibaba_cloud` and `pai_job_template` sections.
+Launches workers as Alibaba Cloud PAI DLC (灵骏) jobs by cloning a template job. Ideal for elastic scaling — run 6+ experiments in parallel without worrying about local hardware limits. Configure credentials and job defaults in the `alibaba_cloud` and `pai_job_template` sections.
 
 ## Configuration
 
@@ -147,22 +230,6 @@ See [`research_config.example.jsonc`](research_config.example.jsonc) for all opt
 | `pai_job_template` | Job cloning template and defaults |
 | `remote_monitor` | Optional kite-client remote monitoring |
 | `ssh` | SSH host list for the SSH runner |
-
-## Experiment Blueprints
-
-Blueprints are markdown files with 7 required sections that define an experiment:
-
-| Section | Description |
-|---|---|
-| `[exp_purpose]` | Hypothesis or objective being tested |
-| `[exp_codebase_dir]` | Absolute path to experiment code |
-| `[exp_venv_exe]` | Path to Python executable |
-| `[exp_yaml_path]` | Path to training config YAML |
-| `[exp_launch_command]` | Command to start training |
-| `[exp_result_dir]` | Output directory for results |
-| `[exp_max_time]` | Maximum allowed runtime |
-
-The leader agent generates these from the research plan; worker agents execute them.
 
 ## Project Structure
 
@@ -189,31 +256,132 @@ alpha_auto_research/
     worker_experiment.md       Worker agent instructions
 ```
 
-## Example: Full Research Cycle
+## Usage Examples
+
+### Basic: plan, review, execute
 
 ```bash
-# 1. Write a research topic
-cat > research_topic/kl_ablation.md << 'EOF'
-Investigate the effect of KL divergence coefficient on GRPO training stability.
-Compare kl_coef values of 0.01, 0.05, and 0.1 across two model sizes.
-EOF
+# Step 1: Generate a research plan (Leader reads the topic, designs experiments)
+alpha-rl-new-planning \
+    --runner=ssh \
+    --research-topic="research_topic/example_01_content_madness_detect.md"
 
-# 2. Generate a research plan
-alpha-rl-new-planning --research-topic="research_topic/kl_ablation.md"
-
-# 3. Refine the plan if needed
-alpha-rl-resume-planning \
-    --research-topic="research_topic/kl_ablation.md" \
-    --resume-instruction="study kl_type first, ahead of kl coef, try again"
-
-# 4. Execute experiments
+# Step 2: Review the generated plan, then confirm execution
 alpha-rl-begin-experiments \
-    --research-topic="research_topic/kl_ablation.md" \
+    --runner=ssh \
+    --research-topic="research_topic/example_01_content_madness_detect.md" \
     --resume-instruction="permission granted, begin research"
-
-# 5. Monitor jobs
-alpha-scan-jobs
-
-# 6. Stop a job if needed
-alpha-stop-jobs --stop-job-id=<job_id>
 ```
+
+### Iterative planning: refine before executing
+
+```bash
+# Generate initial plan
+alpha-rl-new-planning \
+    --runner=ssh \
+    --research-topic="research_topic/example_02_kl_abl.md"
+
+# Refine the plan with specific instructions
+alpha-rl-resume-planning \
+    --runner=ssh \
+    --research-topic="research_topic/example_02_kl_abl.md" \
+    --resume-instruction="max_env_worker: 64 -> 128, max_num_seqs->1024, revise your plan accordingly"
+
+# Confirm execution
+alpha-rl-begin-experiments \
+    --runner=ssh \
+    --research-topic="research_topic/example_02_kl_abl.md" \
+    --resume-instruction="permission granted, begin research"
+```
+
+### Cloud execution with PAI DLC
+
+```bash
+alpha-rl-new-planning \
+    --runner=pai \
+    --research-topic="research_topic/example_03_appworld.md"
+
+alpha-rl-resume-planning \
+    --runner=pai \
+    --research-topic="research_topic/example_03_appworld.md" \
+    --resume-instruction="polish your plan"
+
+alpha-rl-begin-experiments \
+    --runner=pai \
+    --research-topic="research_topic/example_03_appworld.md" \
+    --resume-instruction="permission granted, begin research"
+```
+
+### Resume and finalize reports
+
+```bash
+# Resume a broken experiment with corrective instructions
+alpha-rl-new-planning \
+    --runner=ssh \
+    --research-topic="research_topic/example_02_kl_abl.md" \
+    --resume-instruction="Look at what you have done! Yaml is all wrong, refer to agentjet/ajet/default_config/ajet_default.yaml"
+
+# Tell the leader to write the final report after experiments finish
+alpha-rl-resume-experiment \
+    --runner=pai \
+    --research-topic="research_topic/example_03_appworld.md" \
+    --resume-instruction="the experiment is finished, write report"
+
+# Customize report style
+alpha-rl-resume-planning \
+    --runner=pai \
+    --research-topic="research_topic/example_03_appworld.md" \
+    --resume-instruction="use seaborn! show as many details as possible, write report in markdown format with figures included."
+```
+
+### Fully autonomous (no human review)
+
+```bash
+alpha-rl-new-research-no-human \
+    --runner=ssh \
+    --research-topic="research_topic/my_topic.md"
+```
+
+### Job management
+
+```bash
+# List all running and recent jobs
+alpha-scan-jobs --runner=ssh
+
+# Stop a specific job
+alpha-stop-jobs --runner=ssh --stop-job-id=<job_id>
+
+# Stop and delete a job
+alpha-stop-jobs --runner=ssh --stop-job-id=<job_id> --delete
+```
+
+## Writing a Research Topic
+
+A research topic is a markdown file describing what you want to investigate. Example:
+
+```markdown
+## Research Task
+
+Investigate the effect of `max_steps` on the balance between training effectiveness and speed.
+Use `Qwen2.5-14B-Instruct`, 8 GPUs per experiment, max 24 hours per experiment.
+
+## Capacity
+
+Max parallel experiment blueprints: 3
+```
+
+Key elements to include:
+- **Research question**: What variable(s) to investigate and what tradeoffs to explore
+- **Model and resources**: Which model to use, GPU count per experiment
+- **Constraints**: Max parallel experiments, time limits per experiment
+- **Codebase and config references**: Point to relevant code paths and YAML configs
+
+See `research_topic/` for complete examples.
+
+## Tech Stack
+
+| Component | Role |
+|---|---|
+| [OpenCode](https://github.com/anthropics/opencode) | Open-source AI agent runtime — reads files, executes commands, manages processes. Supports conversation persistence and resume-from-breakpoint |
+| [AgentJet](https://github.com/modelscope/AgentJet) | Open-source RL training framework (Apache 2.0) by ModelScope. Multi-GPU distributed training, LoRA, diverse tasks (math, AppWorld, medical dialogue, etc.) |
+| LLM API (affordable) | Powers the agents' reasoning. Uses exclusively low-cost models (e.g., MiniMax M2.7) via OpenAI-compatible APIs — no expensive frontier models needed |

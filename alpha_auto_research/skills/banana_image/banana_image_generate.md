@@ -1,80 +1,48 @@
-# 秘钥
+# Banana Image Generation Skill
 
-从 research_config.jsonc 读取秘钥
+## 密钥
+
+从 `research_config.jsonc` 的 `banana_image` 字段读取所有 `${...}` 变量。
 
 
-# 生成图像方法
+---
 
-OpenAI Dall-e 格式
-Nano-banana-3.1-Flash(Generations，推荐对接)
-POST
-${image_gen_url}/v1/images/generations
-最后修改时间：
-8 天前
-请求参数
-Header 参数
-Authorization
-string
-可选
-默认值:
-Bearer ${image_generation_api_key}
-Body 参数
-application/json
-model
-string
-必需
-prompt
-string
-必需
-aspect_ratio
-enum<string>
-可选
-枚举值:
-4:3
-3:4
-16:9
-9:16
-2:3
-3:2
-1:1
-4:5
-5:4
-21:9
-1:4
-4:1
-8:1
-1:8
-response_format
-string
-可选
-url 或 b64_json
-image
-array[string]
-可选
-参考图数组，url 或 b64_json
-image_size
-enum<string>
-可选
-仅 nano-banana-2 支持
-枚举值:
-1K
-2K
-4K
-512
-示例
-{
-    "prompt": "cat",
-    "model": "gemini-3.1-flash-image-preview"
-}
-请求示例代码
-http.client
-Requests
+## 生成图像
+
+### API 概览
+
+- **格式**：OpenAI DALL-E 兼容
+- **模型**：Nano-banana-3.1-Flash（Generations，推荐）
+- **请求方式**：`POST ${image_gen_url}/v1/images/generations`
+
+### 请求参数
+
+#### Header
+
+| 参数 | 类型 | 必需 | 说明 |
+|:-----|:-----|:----:|:-----|
+| `Authorization` | string | 否 | 默认值：`Bearer ${image_generation_api_key}` |
+
+#### Body（application/json）
+
+| 参数 | 类型 | 必需 | 说明 |
+|:-----|:-----|:----:|:-----|
+| `model` | string | **是** | 模型名称，如 `gemini-3.1-flash-image-preview` |
+| `prompt` | string | **是** | 图像描述提示词 |
+| `aspect_ratio` | enum | 否 | 可选值：`4:3` `3:4` `16:9` `9:16` `2:3` `3:2` `1:1` `4:5` `5:4` `21:9` `1:4` `4:1` `8:1` `1:8` |
+| `response_format` | string | 否 | `url` 或 `b64_json` |
+| `image` | array[string] | 否 | 参考图数组（url 或 b64_json） |
+| `image_size` | enum | 否 | 仅 nano-banana-2 支持，可选值：`512` `1K` `2K` `4K` |
+
+### 请求示例
+
+```python
 import http.client
 import json
 
-conn = http.client.HTTPSConnection("${image_gen_url}")  # read from research_config.jsonc -> banana_image.image_gen_url
+conn = http.client.HTTPSConnection("${image_gen_url}'s host")  # read from research_config.jsonc -> banana_image.image_gen_url
 payload = json.dumps({
-   "prompt": "cat",
+   "prompt": "cat",  # include image url here if you want to edit one image
    "model": "gemini-3.1-flash-image-preview"
 })
 headers = {
@@ -85,26 +53,18 @@ conn.request("POST", "/v1/images/generations", payload, headers)
 res = conn.getresponse()
 data = res.read()
 print(data.decode("utf-8"))
-返回响应
-🟢200
-成功
-application/json
-object
+```
 
-示例
-{}
-修改于 8 天前
-上一页
-Nano-banana-2(Pro) 官方格式 gemini-3-pro-image-preview
-下一页
-Nano-banana-3.1-Flash(Edits兼容)
+### 返回响应
+
+- **200**：成功，返回 `application/json` 对象
 
 
-# Prompting
+---
+
+## Prompting 指南
 
 Interactive prompt crafting for Nano Banana Pro image generation. This skill guides users through a structured process to create effective prompts by clarifying intent and applying proven techniques.
-
-## Workflow
 
 ### Step 1: Gather Reference Materials
 
@@ -159,19 +119,19 @@ Use the `AskUserQuestion` tool to understand the user's goal. Ask questions in b
 
 ### Step 3: Determine Prompt Style
 
-Based on user responses, select the appropriate prompt format from `references/guide.md`:
+Based on user responses, select the appropriate prompt format:
 
-| User Need | Recommended Style |
-|-----------|-------------------|
-| Simple, quick generation | Narrative Prompt (Technique 1) |
-| Precise control over details | Structured Prompt (Technique 2) |
-| Era-specific aesthetic | Vibe Library + Photography Terms (Techniques 3-4) |
-| Magazine/poster with text | Physical Object Framing (Technique 5) |
-| Conceptual/interpretive | Perspective Framing (Technique 6) |
-| Diagram/infographic | Educational Imagery (Technique 7) |
-| Editing existing image | Image Transformation (Technique 8) |
-| Multiple views/panels | Multi-Panel Output (Technique 9) |
-| Multiple reference images | Reference Role Assignment (Technique 12) |
+| User Need | Recommended Technique |
+|:----------|:----------------------|
+| Simple, quick generation | Technique 1: Narrative Prompt |
+| Precise control over details | Technique 2: Structured Prompt |
+| Era-specific aesthetic | Techniques 3-4: Vibe Library + Photography Terms |
+| Magazine/poster with text | Technique 5: Physical Object Framing |
+| Conceptual/interpretive | Technique 6: Perspective Framing |
+| Diagram/infographic | Technique 7: Educational Imagery |
+| Editing existing image | Technique 8: Image Transformation |
+| Multiple views/panels | Technique 9: Multi-Panel Output |
+| Multiple reference images | Technique 12: Reference Role Assignment |
 
 ### Step 4: Generate the Prompt
 
@@ -194,15 +154,16 @@ Construct the prompt by:
 - [ ] Negative prompts added (if needed)
 - [ ] Reference image roles assigned (if using references)
 
-# Nano Banana Prompting Guide
 
-## Technique 1: Narrative Prompts
+---
+
+## Technique Reference
+
+### Technique 1: Narrative Prompts
 
 Start with a simpler narrative approach if no need to provide detailed specifications.
 
-### Scene Narrative
-
-Describe a moment or action happening in the scene:
+**Scene Narrative** — Describe a moment or action happening in the scene:
 
 > "A young woman stands almost sideways, slightly bent forward, during the final preparation for the show. Makeup artists apply lipstick to her."
 
@@ -214,15 +175,11 @@ Direct attention to specific elements:
 
 > "The main emphasis is on the girl's face and the details of her costume. Emphasize the expressiveness of the gaze."
 
----
-
-## Technique 2: Structured Prompts
+### Technique 2: Structured Prompts
 
 Use structured formats (YAML/JSON) when you need to provide more detailed specifications.
 
-### Reference Preservation (when reference image available)
-
-Use multiple reinforcing signals to preserve details from a reference image:
+**Reference Preservation** (when reference image available):
 
 ```yaml
 face:
@@ -231,9 +188,7 @@ face:
   description: "The girl's facial features, expression, and identity must remain exactly the same as the reference image."
 ```
 
-### Multi-Subject Handling
-
-When a scene has multiple distinct elements, define each as a separate object:
+**Multi-Subject Handling** — Define each element as a separate object:
 
 ```yaml
 subject:
@@ -248,7 +203,7 @@ subject:
     expression: "calm, looking forward"
 ```
 
-### Example: 2000s Mirror Selfie
+**Example — 2000s Mirror Selfie:**
 
 ```yaml
 subject:
@@ -296,318 +251,139 @@ background:
   lighting: "retro"
 ```
 
----
+### Technique 3: Vibe Library
 
-## Technique 3: Vibe Library
-
-The vibe is determined by **signature details** - specific elements that define an era or style. Knowing these elements is key to authentic results.
+The vibe is determined by **signature details** — specific elements that define an era or style.
 
 | Era/Style | Signature Details |
-|-----------|-------------------|
+|:----------|:------------------|
 | 2000s bedroom | CD player, beaded curtain, lip glosses, pop icon posters |
 | 1990s film photography | direct flash, messy hair, dim lighting, magazine posters |
 | Film noir | venetian blind shadows, cigarette smoke, fedora, rain on window |
 | Wes Anderson | symmetry, pastels, vintage props, centered framing |
 | Blade Runner | neon rain, holographic ads, steam, cramped urban spaces |
 
-### Mood/Atmosphere Words
-
-Use evocative words to set the emotional tone:
+**Mood/Atmosphere Words:**
 
 > "dreamy, storytelling vibe", "warm, nostalgic", "cinematic, emotional"
 
-### Candid Actions
-
-Natural poses and actions add authenticity:
+**Candid Actions** — Natural poses add authenticity:
 
 > "The subject is looking slightly away from the camera, holding a coffee cup, with a relaxed, candid expression."
 
----
-
-## Technique 4: Photography Terminology
+### Technique 4: Photography Terminology
 
 Technical camera/lighting terms add realism and control.
 
-### Camera/Lens Specs
+| Category | Example |
+|:---------|:--------|
+| **Camera/Lens** | "Shot on a Sony A7III with an 85mm f/1.4 lens, creating a flattering portrait compression." |
+| **Lighting** | "Classic three-point lighting setup. Soft key light, subtle rim light separating subject from dark background." |
+| **Texture** | "Render natural skin texture with visible pores. The fabric should show subtle wool texture." |
+| **Time of Day** | "Golden Hour sunset. Warm, nostalgic lighting hitting the side of the face." |
+| **Framing** | "Framed from chest up, ample headroom, shot from high angle, looking directly at camera." |
+| **Focus** | "Exquisite focus on the eyes." |
+| **Color Grading** | "Clean and bright cinematic grading with subtle warmth and balanced tones." |
+| **Era Camera** | `camera_style: "early-2000s digital camera aesthetic"` with `lighting: "harsh super-flash"` |
 
-Name specific gear to suggest quality and style:
-
-> "Shot on a Sony A7III with an 85mm f/1.4 lens, creating a flattering portrait compression."
-
-### Named Lighting Setups
-
-Use known photography terms:
-
-> "Use a classic three-point lighting setup. The main key light should create soft, defining shadows on the face. A subtle rim light should separate the subject's shoulders and hair from the dark background."
-
-### Texture Realism
-
-Explicitly request textures for authenticity:
-
-> "Render natural skin texture with visible pores. The fabric of the suit should show a subtle wool texture."
-
-### Time of Day
-
-Specify lighting conditions by time:
-
-> "Golden Hour (sunset). Warm, nostalgic lighting hitting the side of the face."
-
-Other options: blue hour, harsh noon light, overcast diffused light, night with artificial lights.
-
-### Framing & Composition
-
-Specify how the subject is framed:
-
-> "The subject is framed from the chest up, with ample headroom. Shot from a high angle. The person looks directly at the camera."
-
-### Focus Target
-
-Direct where sharpest focus should be:
-
-> "exquisite focus on the eyes"
-
-### Color Grading
-
-Describe the overall color treatment:
-
-> "Clean and bright cinematic color grading with subtle warmth and balanced tones, ensuring a polished and contemporary feel."
-
-### Era-Specific Camera Styles
-
-Reference camera aesthetics from specific eras:
-
-- `camera_style: "early-2000s digital camera aesthetic"`
-- `lighting: "harsh super-flash with bright blown-out highlights but subject still visible"`
-- `texture: "subtle grain, retro highlights, crisp details, soft shadows"`
-
----
-
-## Technique 5: Physical Object Framing
+### Technique 5: Physical Object Framing
 
 Generate an image OF a physical object (magazine, poster, photo on desk) rather than just the content itself.
 
 > "A photo of a glossy magazine cover... The magazine is on a white shelf against a wall."
 
-### Typography Instructions
+- **Typography**: "The text is in a serif font, black on white, and fills the view."
+- **Realistic Details**: "Put the issue number and today's date in the corner along with a barcode and a price."
 
-Specify font style for text in images:
-
-> "The text is in a serif font, black on white, and fills the view."
-
-### Realistic Details
-
-Add authenticity with real-world elements:
-
-> "Put the issue number and today's date in the corner along with a barcode and a price."
-
----
-
-## Technique 6: Perspective Framing
+### Technique 6: Perspective Framing
 
 Ask for an interpretation from a specific viewpoint rather than a literal image.
 
 > "How engineers see the San Francisco Bridge"
 
-The model infers what that perspective would emphasize (structural elements, blueprints, stress diagrams, etc.).
+Other examples: "How a child sees a hospital", "How a chef sees a kitchen", "How an architect sees a city"
 
-Other examples:
-- "How a child sees a hospital"
-- "How a chef sees a kitchen"
-- "How an architect sees a city"
-
----
-
-## Technique 7: Educational/Instructional Imagery
+### Technique 7: Educational/Instructional Imagery
 
 Create infographics, diagrams, and educational visuals.
 
-### Educational Framing
+- **Educational Framing**: "Create an educational infographic explaining [Photosynthesis]."
+- **Visual Elements**: "Illustrate: The Sun, a green Plant, Water (H2O) entering roots, CO2 entering leaves, O2 being released."
+- **Audience**: "Suitable for a high school science textbook."
+- **Flow & Labeling**: "Use arrows to show the flow of energy and matter. Label each element clearly."
 
-Start with the purpose:
+### Technique 8: Image Transformation
 
-> "Create an educational infographic explaining [Photosynthesis]."
+Transform a reference image by specifying operations.
 
-### Visual Elements List
+- **Task-Based Verbs**: "Identify the main product... Cleanly extract... Recreate as a premium e-commerce product shot... Place on pure white studio background."
+- **Removal**: "Automatically removing any hands holding it or messy background details."
 
-Explicitly list components to include:
-
-> "Illustrate the key components: The Sun, a green Plant, Water (H2O) entering roots, Carbon Dioxide (CO2) entering leaves, and Oxygen (O2) being released."
-
-### Audience Reference
-
-Target the complexity level:
-
-> "suitable for a high school science textbook"
-
-### Flow & Labeling
-
-Add structure and annotations:
-
-> "Use arrows to show the flow of energy and matter. Label each element clearly."
-
----
-
-## Technique 8: Image Transformation
-
-Transform a reference image by specifying operations to perform.
-
-### Task-Based Verbs
-
-Use action words to direct the transformation:
-
-> "Identify the main product... Cleanly extract the product... Recreate it as a premium e-commerce product shot... Place the product on a pure white studio background."
-
-### Removal Instructions
-
-Specify what to remove from the reference:
-
-> "automatically removing any hands holding it or messy background details"
-> "completely removing any fingers, hands, or clutter"
-
----
-
-## Technique 9: Multi-Panel/Collage Output
+### Technique 9: Multi-Panel/Collage Output
 
 Generate multiple views or panels in a single image.
 
-### Layout Specification
+- **Layout**: "A collage with one large main image at the top, and several smaller images below it."
+- **Numbered Panels**: "1. Main: wide-angle living area. 2. Bottom Left: Master Bedroom. 3. Bottom Right: 3D top-down floor plan."
+- **Consistent Style**: "Apply Modern Minimalist style with warm oak wood flooring and off-white walls across ALL images."
 
-Define the panel arrangement:
+### Technique 10: Negative Prompts
 
-> "a collage with one large main image at the top, and several smaller images below it"
+Tell the model what NOT to include:
 
-### Numbered Panel Content
+> "no date stamp", "no text", "not rustic", "No monkeys"
 
-Specify what each panel shows:
+### Technique 11: Aspect Ratio & Resolution
 
-> "1. Main Image (Top): A wide-angle perspective view of the main living area"
-> "2. Small Image (Bottom Left): A view of the Master Bedroom"
-> "3. Small Image (Bottom Right): A 3D top-down floor plan view"
+- **Aspect Ratio**: `9:16` (vertical poster), `21:9` (cinematic wide), `4:5` (Instagram)
+- **Resolution**: `1K`, `2K`, `4K`
 
-### Consistent Style Across Panels
+### Technique 12: Reference Role Assignment
 
-Ensure visual coherence:
-
-> "Apply a consistent Modern Minimalist style with warm oak wood flooring and off-white walls across ALL images."
-
----
-
-## Technique 10: Negative Prompts
-
-Tell the model what NOT to include to avoid unwanted elements.
-
-> "no date stamp"
-> "no text"
-> "not rustic"
-> "No monkeys"
-
-Useful for stopping repeated unwanted outputs.
-
----
-
-## Technique 11: Aspect Ratio & Resolution
-
-Specify canvas dimensions and output quality.
-
-### Aspect Ratio
-
-> "A 9:16 vertical poster"
-> "A cinematic 21:9 wide shot"
-> "4:5 Instagram format"
-
-### Resolution
-
-> "Upscale to 4K"
-> "1K, 2K or 4K resolution"
-
----
-
-## Technique 12: Reference Role Assignment
-
-When using multiple reference images, assign specific roles to each.
+When using multiple reference images, assign specific roles:
 
 > "Use Image A for the character's pose, Image B for the art style, and Image C for the background environment."
 
-> "Put the logo from image 1 onto the device in image 2. The woman from image 3 is holding it. Use the color palette from image 4."
+Common roles: character/subject, style/aesthetic, color palette, background/environment, branding/logo.
 
-Common roles:
-- Character/subject reference
-- Style/aesthetic reference
-- Color palette reference
-- Background/environment reference
-- Branding/logo reference
-
----
-
-## Technique 13: Character Consistency
+### Technique 13: Character Consistency
 
 Maintain the same character across multiple outputs.
 
-### Single Reference
+- **Single Reference**: Generate a 360 turnaround view first, then use as reference library.
+- **Multiple References** (up to 5): Use diverse angles — close-ups, full body, different clothes/poses/expressions.
 
-Start with one image, generate variations to build a reference library.
+### Technique 14: Image Blending
 
-> "A 360 turnaround view in 4 different angles, full body pose"
+Combine multiple input images into one:
 
-### Multiple References (up to 5)
+> "Combine these images into one appropriately arranged cinematic image in 16:9 format."
 
-Use diverse references for better consistency:
-- Close-ups
-- Full body shots
-- Different clothes/poses
-- Different expressions/orientations
+### Technique 15: Upscaling & Restoration
 
-> "She is giving a talk at a large tech conference"
+- **Upscaling**: "Upscale to 4K" (works with images as small as 150x150)
+- **Restoration**: "Faithfully restore this old photo"
+
+### Technique 16: Translation & Localization
+
+> "Translate all the English text on the cans into Korean, while keeping everything else the same."
+
 
 ---
 
-## Technique 14: Image Blending
+## 生成图像之后
 
-Combine multiple input images into a single output.
+当你把生成的图像下载到本地后，需要进一步上传到云端图床，方便分享和浏览：
 
-> "Combine these images into one appropriately arranged cinematic image in 16:9 format"
-
-> "Take the subjects from images 1-3 and place them in the environment from image 4"
-
----
-
-## Technique 15: Upscaling & Restoration
-
-Enhance image quality or restore old photos.
-
-### Upscaling
-
-> "Upscale to 4K"
-
-Works with images as small as 150x150.
-
-### Restoration
-
-> "Faithfully restore this old photo"
-
----
-
-## Technique 16: Translation & Localization
-
-Translate or adapt text within images.
-
-> "Translate all the English text on the cans into Korean, while keeping everything else the same"
-
-> "Generate localized text for international markets"
-
-
-# 生成图像之后
-
-
-注意：以上所有 ${...} 变量均从 `research_config.jsonc` 的 `banana_image` 字段读取。
-
-此外，当你把生成的图像下载到本地后，你需要进一步上传到我们自己的云端，方便分享和浏览，方法：
-
+```bash
 curl -X POST ${image_bed_upload_url} \
   -H "Authorization: Bearer ${image_bed_api_key}" \
   -F "folder=testfolder" \
   -F "file_name=test_file.log" \
-  -F "file=@/home/fuqingxu/long_task_05_serve_public_files/test_file.log" \
+  -F "file=@/path/to/local/image.png" \
   --no-buffer
+```
 
-运行完毕后，如果一切无误，服务器会返回云端图像url，然后你把markdown中的本地图像替换掉即可
+运行完毕后，如果一切无误，服务器会返回云端图像 URL，然后你把 markdown 中的本地图像路径替换为云端 URL 即可。
+
+> 注意：以上所有 `${...}` 变量均从 `research_config.jsonc` 的 `banana_image` 字段读取。
