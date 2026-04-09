@@ -2,21 +2,22 @@
 
 [中文版 (Chinese Version)](README.ZH.md)
 
-> Let AI agents autonomously complete the full research loop: **propose hypotheses -> design experiments -> dispatch training -> analyze results -> write reports**. Submit a research topic before bed, wake up to a finished report.
+> 2025-2026, "AI doing research autonomously" went from an academic dream to engineering reality. [AI Scientist](https://sakana.ai/ai-scientist/) was published in [Nature](https://www.nature.com/articles/s41586-026-10265-5), [AI-Researcher](https://github.com/HKUDS/AI-Researcher) earned NeurIPS 2025 Spotlight, and [OpenAI declared fully-automated research its North Star](https://www.technologyreview.com/2026/03/20/1134438/openai-is-throwing-everything-into-building-a-fully-automated-researcher/). But most of these systems focus on **writing papers**. We focus on **running experiments**.
 
-Alpha Auto Research is an automated RL research system built on a **Leader-Worker architecture**. A **leader agent** reads a natural-language research topic, designs multi-stage experiment plans, generates structured experiment blueprints, dispatches them to GPU clusters, monitors progress, collects results, and writes analysis reports — while **worker agents** execute individual training runs on distributed compute backends.
+Alpha Auto Research is an automated RL research system built on a **Leader-Worker architecture**. A **leader agent** reads a natural-language research topic, designs multi-stage experiment plans, generates structured experiment blueprints, dispatches them to GPU clusters, monitors progress, collects results, and writes analysis reports — while **worker agents** execute individual training runs on distributed compute backends. Submit a research topic before bed, wake up to a finished report.
 
-The system is powered by [OpenCode](https://github.com/anthropics/opencode) AI agents and [AgentJet](https://github.com/modelscope/AgentJet) (an open-source RL training framework by ModelScope). It supports Alibaba Cloud PAI DLC and SSH-based clusters as compute backends. **No expensive frontier models required** — the entire system runs on affordable LLM APIs like [MiniMax M2.7](https://www.minimax.io/) (Plus plan at ~98 RMB/month, ~100 TPS, only 1/7 the price of Claude 5x — not a sponsored ad, M2.7 is genuinely good). Run autonomous research overnight while you vibe code during the day.
+The system is **fully open-source**, powered by [OpenCode](https://github.com/anthropics/opencode) AI agents and [AgentJet](https://github.com/modelscope/AgentJet) (an open-source RL training framework by ModelScope). As the [oh-my-opencode](https://github.com/nicepkg/oh-my-opencode) author put it: *"Claude Code's a nice prison, but it's still a prison."* — we need full control over conversation history, breakpoint recovery, and agent behavior, which only open-source tooling can provide. It supports Alibaba Cloud PAI DLC (灵骏) and SSH-based clusters as compute backends. **No expensive frontier models required** — the entire system runs on affordable LLM APIs like [MiniMax M2.7](https://www.minimax.io/) or GLM coding plans. Got unused coding plan quota sitting idle overnight? Let Auto Research squeeze every last drop of value out of it.
 
 ## Key Features
 
-- **End-to-end autonomous research**: From topic to conclusion with zero human intervention
+- **Long-horizon experiment loops**: Single RL training runs can take hours or days. The system autonomously handles the full cycle — hypothesize, design, dispatch, wait, analyze, iterate — all unattended
+- **Maximize cluster utilization**: Multi-GPU parallel dispatch across SSH servers or Alibaba Cloud PAI DLC (灵骏). Squeeze every GPU-hour out of your cluster instead of running experiments one by one
+- **Fully open-source, no vendor lock-in**: Built on [OpenCode](https://github.com/anthropics/opencode) — full control over conversation history, breakpoint recovery, and agent behavior. No dependence on closed-source tools that break when you need deep customization
+- **Cheap enough to run freely**: Powered by affordable LLM APIs (MiniMax M2.7, GLM coding plans, or any OpenAI-compatible model). When API cost is effectively zero, "should I run one more experiment?" is never a question
+- **Fully autonomous or human-in-the-loop — your choice**: The Blueprint mechanism lets the leader agent draft structured experiment plans while you review, tweak parameters, or take over any sub-task at any stage. Every step is transparent — no wasted compute from days of training in the wrong direction. Or just let it run end-to-end with `--no-human-in-the-loop`
 - **Leader-Worker architecture**: Leader designs experiments and analyzes results; Workers execute training on GPU clusters
 - **Blueprint-based coordination**: Structured markdown "contracts" between Leader and Worker ensure reproducibility
-- **Multi-backend support**: Alibaba Cloud PAI DLC or SSH-based clusters, switchable with a single flag (`--runner`)
 - **Robust unattended operation**: Auto-recovery from API timeouts, GPU contention, network issues, and agent crashes — runs for days without manual restarts
-- **Cost-efficient**: Powered exclusively by affordable LLM APIs (e.g., MiniMax M2.7 at ~98 RMB/month) — run overnight experiments for less than a cup of coffee
-- **Human-in-the-loop or fully autonomous**: Review and refine plans before execution, or let the system run end-to-end
 
 ## Real-World Results: 6 Research Topics Completed Autonomously
 

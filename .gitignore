@@ -23,3 +23,7 @@ daemon_logs
 gen_blueprint_image.py
 test
 cradle*
+.agent
+.claude
+.agents/skills
+skills-lock.json
