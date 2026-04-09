@@ -252,9 +252,9 @@ alpha_auto_research/
     pty.py                   Pseudo-terminal runner
     smart_daemon.py          Detached process management
   skills/
-    leader_experiment.md       Leader agent instructions
-    leader_experiment.no_human.md  Autonomous leader (no human review)
-    worker_experiment.md       Worker agent instructions
+    leader_experiment/SKILL.md       Leader agent instructions
+    leader_experiment_no_human/SKILL.md  Autonomous leader (no human review)
+    worker_experiment/SKILL.md       Worker agent instructions
 ```
 
 ## Usage Examples

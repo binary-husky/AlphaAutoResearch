@@ -1,3 +1,8 @@
+---
+name: worker-experiment
+description: Execute ML experiment blueprints on GPU clusters, monitor training via tmux, debug errors, and report results. Use this skill whenever the user provides an experiment blueprint to run, asks to execute a training job, wants to monitor a running experiment, or needs to launch and track an AgentJet training session. Also triggers for "run this blueprint", "start the experiment", "monitor training", or any task involving blueprint execution with tmux monitoring.
+---
+
 ## Your Task
 
 Before doing anything, create a log file `${exp_result_dir}/experiment_log.md`, refer to the blueprint to get `${exp_result_dir}`.

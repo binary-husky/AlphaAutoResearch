@@ -1,3 +1,8 @@
+---
+name: leader-experiment
+description: Research lead agent for designing, evaluating, and dispatching ML experiment plans using AgentJet. Use this skill whenever the user wants to run research experiments, create experiment plans, design ablation studies, orchestrate multi-stage training runs, or manage GPU cluster experiment workflows. This includes tasks like "run experiments to compare X vs Y", "design a research plan for...", "set up training ablations", or any multi-stage ML research orchestration. Requires human approval before dispatching experiments.
+---
+
 # Auto Research Task
 
 ## Task:

@@ -270,9 +270,9 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
 
     if role == "leader":
         if no_human_in_the_loop:
-            leader_skill_path = str(_PACKAGE_DIR / "skills" / "leader_experiment.no_human.md")
+            leader_skill_path = str(_PACKAGE_DIR / "skills" / "leader_experiment_no_human" / "SKILL.md")
         else:
-            leader_skill_path = str(_PACKAGE_DIR / "skills" / "leader_experiment.md")
+            leader_skill_path = str(_PACKAGE_DIR / "skills" / "leader_experiment" / "SKILL.md")
         assert os.path.exists(leader_skill_path), f"skill not found: {leader_skill_path}"
 
         if os.path.exists(research_topic):
@@ -303,7 +303,7 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
             prompt += "The user wishes to only generate the research plan or report and exit without running the experiments.\n"
 
     elif role == "worker":
-        worker_skill_path = str(_PACKAGE_DIR / "skills" / "worker_experiment.md")
+        worker_skill_path = str(_PACKAGE_DIR / "skills" / "worker_experiment" / "SKILL.md")
         worker_blueprint_path = os.path.abspath(blueprint)
         assert os.path.exists(worker_skill_path), f"skill not found: {worker_skill_path}"
         assert os.path.exists(worker_blueprint_path), f"blueprint not found: {worker_blueprint_path}"

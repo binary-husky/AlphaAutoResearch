@@ -1,3 +1,8 @@
+---
+name: banana-image
+description: Generate images using the Nano-banana API (DALL-E compatible). Use this skill whenever the user wants to generate, create, or craft AI images, photos, illustrations, infographics, or any visual content. Also use it when the user asks about image prompting techniques, wants to edit/transform existing images, or needs to upload generated images to the cloud image bed. Covers prompt engineering, API usage, and cloud upload.
+---
+
 # Banana Image Generation Skill
 
 ## 密钥

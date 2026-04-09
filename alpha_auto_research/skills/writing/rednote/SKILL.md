@@ -1,3 +1,8 @@
+---
+name: rednote-convert
+description: Convert markdown articles to Xiaohongshu (RedNote) format, including title, cover image, long-form image slides, and short-form post text with hashtags. Use this skill whenever the user wants to publish content to Xiaohongshu, convert an article for RedNote, create Xiaohongshu posts from existing markdown, or generate RedNote content (covers, slides, captions). This skill orchestrates the full pipeline from markdown to ready-to-post RedNote content.
+---
+
 # Markdown文章转小红书
 
 # 概述
@@ -10,16 +15,14 @@
     - 一般沿用Markdown文章的标题即可
 
 2. 生成封面
-    - 见 alpha_auto_research/skills/writing/cover.md
-    - 见 alpha_auto_research/skills/banana_image/banana_image_generate.md
+    - 见 alpha_auto_research/skills/writing/cover/SKILL.md
+    - 见 alpha_auto_research/skills/banana_image/SKILL.md
 
 3. 生成长文（这个过程比较复杂，请按照以下步骤执行）
     3-1. 对文章的分区，然后对每个分区进行摘要，注意摘要还要包含对分区中所包含的图片的描述。生成 `${rednote_root}/partitions.md`
     3-2. 每个分区都转化为 4:3 的竖屏图片
 
 4. 生成正文短文 （带关键词hashtag）
-
-
 
 
 

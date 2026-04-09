@@ -1,3 +1,8 @@
+---
+name: rednote-cover
+description: Generate Xiaohongshu (RedNote) cover images in 3:4 format (1080x1440) with AI-generated top half and color-matched title bottom half. Use this skill whenever the user mentions cover images, RedNote covers, Xiaohongshu cover image, or wants to create a social media cover with AI image + title text layout. Also triggers for cover color palette selection and cover design for Chinese social platforms.
+---
+
 # 小红书封面图生成详细指南
 
 ## 封面图结构（3:4 = 1080x1440）

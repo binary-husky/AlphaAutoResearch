@@ -1,3 +1,8 @@
+---
+name: leader-experiment-no-human
+description: Fully autonomous research lead agent for designing, evaluating, and dispatching ML experiment plans using AgentJet — runs without human approval. Use this skill when the user wants unattended/autonomous experiment orchestration, hands-off research runs, or batch experiment management that should proceed without waiting for human confirmation. Ideal for overnight runs, large-scale ablations, or when the user explicitly says "run without asking me" or "fully automated".
+---
+
 # Auto Research Task
 
 ## Task:

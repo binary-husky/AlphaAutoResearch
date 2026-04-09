@@ -250,9 +250,9 @@ alpha_auto_research/
     pty.py                   伪终端运行器
     smart_daemon.py          后台进程管理
   skills/
-    leader_experiment.md       Leader Agent 指令
-    leader_experiment.no_human.md  全自动 Leader（无人工审查）
-    worker_experiment.md       Worker Agent 指令
+    leader_experiment/SKILL.md       Leader Agent 指令
+    leader_experiment_no_human/SKILL.md  全自动 Leader（无人工审查）
+    worker_experiment/SKILL.md       Worker Agent 指令
 ```
 
 ## 使用示例
