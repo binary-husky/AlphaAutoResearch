@@ -36,3 +36,11 @@ alpha-rl-resume-planning = "alpha_auto_research.cli:resume_planning"
 alpha-rl-begin-experiments = "alpha_auto_research.cli:begin_experiments"
 alpha-rl-resume-experiment = "alpha_auto_research.cli:resume_experiment"
 alpha-rl-new-research-no-human = "alpha_auto_research.cli:new_research_no_human"
+
+# claudecode_runner
+alpha-rl-research-claude = "alpha_auto_research.claudecode_runner:main"
+alpha-rl-cc-new-planning = "alpha_auto_research.cli_claudecode:new_planning"
+alpha-rl-cc-resume-planning = "alpha_auto_research.cli_claudecode:resume_planning"
+alpha-rl-cc-begin-experiments = "alpha_auto_research.cli_claudecode:begin_experiments"
+alpha-rl-cc-resume-experiment = "alpha_auto_research.cli_claudecode:resume_experiment"
+alpha-rl-cc-new-research-no-human = "alpha_auto_research.cli_claudecode:new_research_no_human"

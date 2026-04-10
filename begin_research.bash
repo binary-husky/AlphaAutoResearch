@@ -84,3 +84,26 @@ alpha-rl-resume-planning \
     --runner=pai \
     --research-topic="research_topic/example_03_appworld.md" \
     --resume-instruction="use seaborn! show as many details as possible, make it look good! write report in markdown format with figures included."
+
+
+
+
+
+
+
+
+## topic 04
+# plan first
+ccfq \
+alpha-rl-cc-new-planning \
+    --runner=pai \
+    --research-topic="research_topic/example_04_ppo_epoch.md"
+
+
+## topic 04
+# plan first
+ccfq \
+alpha-rl-cc-begin-experiments \
+    --runner=pai \
+    --research-topic="research_topic/example_04_ppo_epoch.md" \
+    --resume-instruction="permission granted, begin research"
