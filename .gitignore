@@ -27,3 +27,6 @@ cradle*
 .claude
 .agents/skills
 skills-lock.json
+.playwright-cli
+*.jpg
+mysite*

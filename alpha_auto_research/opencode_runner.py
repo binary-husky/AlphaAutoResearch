@@ -98,18 +98,26 @@ def _prepare_yolo_config():
     return dst
 
 
-def run_opencode(args: list[str], *, continue_mode=False, session_id=None,
-                 need_permission_error_fix=False, resume_instruction="",
-                 skip_permissions=False, research_topic="") -> tuple[int, bool, str | None]:
+def run_opencode(session_title=None,
+                 opencode_web_url=None,
+                 prompt=None,
+                 continue_mode=False,
+                 session_id=None,
+                 need_permission_error_fix=False,
+                 resume_instruction="",
+                 skip_permissions=False,
+                 research_topic="") -> tuple[int, bool, str | None]:
     """Run opencode and return (returncode, terminated_due_to_permission, session_id).
 
     When starting a new session (not continue_mode), detects the newly created
     session ID right after the process spawns so it can be reused for resuming.
     """
-    cmd = ["opencode"] + args
 
     if continue_mode:
-        cmd = cmd[:-1]  # drop the original prompt
+        assert session_title is None
+        assert opencode_web_url is None
+        assert prompt is None
+        assert session_id is not None
 
         if resume_instruction:
             msg = f"Instruction: {resume_instruction}"
@@ -118,7 +126,15 @@ def run_opencode(args: list[str], *, continue_mode=False, session_id=None,
 
         if need_permission_error_fix:
             msg += ", permission error detected, please try some workaround, e.g. tmux command."
-        cmd += ["-c", session_id, msg]
+
+        cmd = ["opencode", "run", "--session", session_id, msg]
+
+    else:
+        assert session_title is not None
+        assert opencode_web_url is not None
+        assert prompt is not None
+        cmd = ["opencode", "run", "--title", session_title, "--attach", opencode_web_url, prompt]
+
 
     env = None
     if skip_permissions:
@@ -324,10 +340,7 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
         prompt += "---\n"
         prompt += "Special warning: to run multiple experiments in parallel in same server, you need to arrange CUDA_VISIBLE_DEVICES for each experiment in experiment blueprint.\n"
 
-
-
     _ensure_opencode_web(skip_permissions=skip_permissions, role=role)
-    run_args = ["run", "--title", session_title, f"--attach=http://localhost:4096", prompt]
 
     print("[controller message]: run opencode 1st ...")
     session_id = None
@@ -342,7 +355,17 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
     else:
         # delete existing session with the same title to avoid confusion
         _delete_opencode_session_from_title(title=session_title)
-        returncode, terminated_due_to_permission, session_id = run_opencode(run_args, skip_permissions=skip_permissions, research_topic=research_topic)
+        returncode, terminated_due_to_permission, session_id = run_opencode(
+            session_title=session_title,
+            opencode_web_url="http://localhost:4096",
+            prompt=prompt,
+            continue_mode=False,
+            session_id=None,
+            need_permission_error_fix=False,
+            resume_instruction="",
+            skip_permissions=skip_permissions,
+            research_topic=research_topic
+        )
         print(f"[controller message]: Session ID from first run: {session_id}")
         if only_run_planning:
             print_dict({"end reason": "[controller message]: planning role, waiting user feedback (alpha-rl-resume-planning or alpha-rl-begin-experiments)."})
@@ -354,7 +377,9 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
         print("[controller message]: Continuing session ...")
         if session_id:
             returncode, terminated_due_to_permission, _ = run_opencode(
-                run_args,
+                session_title=None,
+                opencode_web_url=None,
+                prompt=None,
                 continue_mode=True,
                 session_id=session_id,
                 need_permission_error_fix=terminated_due_to_permission,

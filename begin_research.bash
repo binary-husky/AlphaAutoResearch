@@ -26,7 +26,7 @@ alpha-rl-new-planning \
 alpha-rl-resume-planning \
     --runner=ssh \
     --research-topic="research_topic/example_02_kl_abl.md" \
-    --resume-instruction="max_env_worker: 64 -> 128, max_num_seqs->1024, revise your plan accordingly"
+    --resume-instruction="- actor_rollout_ref.actor.kl_loss_coef: The coefficient of kl loss. Default is 0.001.- actor_rollout_ref.actor.kl_loss_type: Support kl(k1), abs, mse(k2), low_var_kl(k3) and full. Appending "+" in the end (e.g., 'k1+' and 'k3+') would apply straight through to employ k2 for unbiased gradient estimation, regardless of the kl value estimation (see https://github.com/volcengine/verl/pull/2953#issuecomment-3162113848 for more details). How to calculate the kl divergence between actor and reference policy. See this blog post for detailed analysis: http://joschu.net/blog/kl-approx.html"
 # confirm execution
 alpha-rl-begin-experiments \
     --runner=ssh \
