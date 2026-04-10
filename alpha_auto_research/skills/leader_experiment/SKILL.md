@@ -120,6 +120,7 @@ Here is an example of an experiment blueprint (for `exp_purpose` ,`exp_codebase_
     ## [exp_result_dir]
     - description: Result data storage path (absolute path)
     - path: /foo/bar/subject_appworld/exp_stage_1/result/qwen2_5_14b/
+    - hint: this is where `ajet.trainer_common.train_print_to_markdown_file_path` and `ajet.trainer_common.val_print_to_markdown_file_path` should point to in the yaml configuration.
 
     ## [exp_max_time]
     - description: Maximum runtime, or ${MaxTime}

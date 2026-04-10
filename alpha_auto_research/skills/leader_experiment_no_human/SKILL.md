@@ -1,5 +1,5 @@
 ---
-name: leader-experiment-no-human
+name: leader_experiment_no_human
 description: Fully autonomous research lead agent for designing, evaluating, and dispatching ML experiment plans using AgentJet — runs without human approval. Use this skill when the user wants unattended/autonomous experiment orchestration, hands-off research runs, or batch experiment management that should proceed without waiting for human confirmation. Ideal for overnight runs, large-scale ablations, or when the user explicitly says "run without asking me" or "fully automated".
 ---
 
@@ -75,7 +75,7 @@ An experiment blueprint is a markdown file (blueprint.md). It must contain 7 sec
 Generate experiment blueprints at `${subject_dir}/exp_stage_{EXP_STAGE}/blueprints/blueprint_${n}.md`.
 Once blueprints are issued, other agents will execute them. Therefore, each section should have textual explanation — the more detailed the better.
 
-Here is an example of an experiment blueprint:
+Here is an example of an experiment blueprint (for `exp_purpose` ,`exp_codebase_dir` ,`exp_venv_exe` ,`exp_yaml_path` ,`exp_launch_command` ,`exp_result_dir` ,`exp_max_time`, add additonal fields such as `description` and `hint`):
 
 
 <blueprint_example_begin>
@@ -120,6 +120,7 @@ Here is an example of an experiment blueprint:
     ## [exp_result_dir]
     - description: Result data storage path (absolute path)
     - path: /foo/bar/subject_appworld/exp_stage_1/result/qwen2_5_14b/
+    - hint: this is where `ajet.trainer_common.train_print_to_markdown_file_path` and `ajet.trainer_common.val_print_to_markdown_file_path` should point to in the yaml configuration.
 
     ## [exp_max_time]
     - description: Maximum runtime, or ${MaxTime}

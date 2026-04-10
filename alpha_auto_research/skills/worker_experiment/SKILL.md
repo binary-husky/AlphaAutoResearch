@@ -288,3 +288,4 @@ And never use `--autokill` argument, that will destory all running experiments r
 
 - You must not edit `research_config.jsonc` in any circumstances!
 - When encounter any error, you should check experiment blueprint, and double check you have followed all the instructions in the blueprint (e.g. venv, additional service installation)!
+- You can ignore all hermes_tool_parser errors, they do not matter.
