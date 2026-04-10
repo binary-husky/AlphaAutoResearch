@@ -84,16 +84,23 @@ Here is an example of an experiment blueprint:
     # Experiment Blueprint - Qwen2.5-14B-Instruct with LoRA Rank 16
 
     ## [exp_purpose]
-    Experiment Purpose: Perform LoRA fine-tuning training (rank=16) on the Qwen2.5-14B-Instruct model on the appworld benchmark, evaluating the model's task completion capability in the appworld environment.
+    - description: Experiment Purpose
+    - purpose: Perform LoRA fine-tuning training (rank=16) on the Qwen2.5-14B-Instruct model on the appworld benchmark, evaluating the model's task completion capability in the appworld environment.
 
     ## [exp_codebase_dir]
-    Main experiment code path (absolute path): /foo/bar/codebase
+    - description: Main experiment code path (absolute path)
+    - dir: /foo/bar/codebase
+    - hint: you must `cd` to this directory before executing the training command
 
     ## [exp_venv_exe]
-    Python virtual environment path (absolute path to python): /foo/bar/venv/.venv/bin/python
+    - description: Python virtual environment path (absolute path to python)
+    - path: /foo/bar/venv/.venv/bin/python
+    - hint: you must use this python executable to run the training command, or use `source /foo/bar/venv/.venv/bin/activate` to activate the virtual environment before running the training command
 
     ## [exp_yaml_path]
-    Experiment configuration file path (absolute path): tests/bench/benchmark_appworld/benchmark_appworld.yaml
+    - description: Experiment configuration file path (absolute path)
+    - path: /foo/bar/agentjetdir/tests/bench/benchmark_appworld/benchmark_appworld.yaml
+    - hint: use after --conf= in the training command
 
     Note: This yaml file must contain the following key configurations:
     - model.lora.lora_rank: 16
@@ -101,21 +108,23 @@ Here is an example of an experiment blueprint:
     - .......
 
     ## [exp_launch_command]
-    Training execution command:
-    ```
-    cd /foo/bar/codebase && \
-    export APPWORLD_PATH="/tmp/pack_all_in_one" && \
-    export APPWORLD_SCRIPT="bash EnvService/env_sandbox/appworld.sh" && \
-    python -m ajet.launcher --conf tests/bench/benchmark_appworld/benchmark_appworld.yaml --with-appworld --skip-check-avail-gpu --with-ray
-    ```
-    Note: You need to flexibly adjust the experiment command based on the specific system you are on.
+    - description: Training execution command
+    - command:
+        cd /foo/bar/codebase && \
+        export APPWORLD_PATH="/tmp/pack_all_in_one" && \
+        export APPWORLD_SCRIPT="bash EnvService/env_sandbox/appworld.sh" && \
+        source /foo/bar/venv/.venv/bin/activate && \
+        python -m ajet.launcher --conf tests/bench/benchmark_appworld/benchmark_appworld.yaml --with-appworld --skip-check-avail-gpu --with-ray
+    - hint: Not 100% reliable. You need to flexibly adjust the experiment command based on the specific system you are on.
 
     ## [exp_result_dir]
-    Result data storage path (absolute path): /foo/bar/subject_appworld/exp_stage_1/result/qwen2_5_14b/
+    - description: Result data storage path (absolute path)
+    - path: /foo/bar/subject_appworld/exp_stage_1/result/qwen2_5_14b/
 
     ## [exp_max_time]
-    ${MaxTime} = 12 hours
-    Note: The runtime should not exceed 12 hours. If the experiment exceeds 12 hours, it needs to be forcefully terminated.
+    - description: Maximum runtime, or ${MaxTime}
+    - time: 12 hours
+    - note: The runtime should not exceed 12 hours. If the experiment exceeds 12 hours, it needs to be forcefully terminated.
 
     ## Other Notes
 
@@ -154,6 +163,7 @@ Here is an example of an experiment blueprint:
 
 - Generate experiment blueprints at `${subject_dir}/exp_stage_{EXP_STAGE}/blueprints/blueprint_${n}.md`
 - Run `python -m alpha_auto_research.blueprint_runner.blueprint_runner --runner=${runner} --blueprint=${path_to_blue_print}` to submit the blueprint to the GPU cluster
+- Wait at least 10 seconds between each blueprint submission to avoid overloading the scheduler.
 - Record the returned job_id in `./${subject_dir}/main_research_agent/progress.md`
 - Record task progress in `./${subject_dir}/main_research_agent/progress.md`
 

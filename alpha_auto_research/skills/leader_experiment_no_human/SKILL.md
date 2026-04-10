@@ -154,6 +154,7 @@ Here is an example of an experiment blueprint:
 
 - Generate experiment blueprints at `${subject_dir}/exp_stage_{EXP_STAGE}/blueprints/blueprint_${n}.md`
 - Run `python -m alpha_auto_research.blueprint_runner.blueprint_runner --runner=${runner} --blueprint=${path_to_blue_print}` to submit the blueprint to the GPU cluster
+- Wait at least 10 seconds between each blueprint submission to avoid overloading the scheduler.
 - Record the returned job_id in `./${subject_dir}/main_research_agent/progress.md`
 - Record task progress in `./${subject_dir}/main_research_agent/progress.md`
 
