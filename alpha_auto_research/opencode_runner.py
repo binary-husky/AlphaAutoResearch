@@ -15,6 +15,7 @@ import time
 from pathlib import Path
 from beast_logger import print_dict
 from alpha_auto_research.utils.install_skills import install_skills
+from alpha_auto_research.utils.opencode_printer import format_json_line
 
 
 
@@ -190,7 +191,9 @@ def run_opencode(session_title=None,
     for stream in (process.stdout, process.stderr):
         if stream:
             for line in stream:
-                print(line, end="")
+                if not format_json_line(line):
+                    # Not JSON — print raw (stderr or non-json stdout)
+                    print(line, end="")
                 if "The user rejected permission to use this specific tool call" in line:
                     print("[controller message]: Tool call was rejected by permission settings.")
                     terminated_due_to_permission = True
@@ -319,9 +322,17 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
         with open(running_flag, "w+") as f:
             f.write("Running")
 
+        with open(leader_skill_path, "r") as f:
+            skill_content = f.read()
+
         prompt = (
             "You are the main research agent, the research lead, responsible for designing, evaluating, and dispatching research plans.\n"
-            f"Experiment skill: {leader_skill_path}, current runner is **{runner}** runner.\n"
+            f"current runner is **{runner}** runner.\n"
+            f"---\n"
+            f"Experiment skill:"
+            f"---\n"
+            f"{skill_content}\n"
+            f"---\n"
             f"After all experiments are complete and the final report is written, please delete {running_flag}\n"
             f"{research_topic_text}\n"
             f"---\n"

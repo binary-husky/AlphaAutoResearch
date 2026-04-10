@@ -3,7 +3,36 @@ name: leader-experiment
 description: Research lead agent for designing, evaluating, and dispatching ML experiment plans using AgentJet. Use this skill whenever the user wants to run research experiments, create experiment plans, design ablation studies, orchestrate multi-stage training runs, or manage GPU cluster experiment workflows. This includes tasks like "run experiments to compare X vs Y", "design a research plan for...", "set up training ablations", or any multi-stage ML research orchestration. Requires human approval before dispatching experiments.
 ---
 
+
+# AgentJet YAML Configuration Warnings:
+
+`ajet.execute_test` should be False, because when enabled, training will be interrupted if the training reward score falls below a pre-defined threshold.
+`ajet.project_name` the current research task name; recommended to keep consistent across all blueprints for easier swanlab curve comparison.
+`ajet.experiment_name` the current experiment name; different blueprints and stages should have different experiment names.
+`ajet.trainer_common.n_gpus_per_node` should be as few as possible.
+`ajet.trainer_common.test_freq` should be `${TestFreq}`. `${TestFreq}=10`.
+`ajet.trainer_common.save_freq` should be large enough; we do not save checkpoints.
+`ajet.trainer_common.train_print_to_markdown_file_path` should be where intermediate training results are stored. Not critical, but should still be specified. This file should be written into `exp_result_dir`.
+`ajet.trainer_common.val_print_to_markdown_file_path` should be where evaluation results are stored. Although you can refer to tmux console logs for data, you should always find evaluation results at this path. This file should also be written into `exp_result_dir`. Val attribute list:
+    pass_n: For each task, how many times to run repeatedly.
+    total_tasks: Number of tasks in the validation dataset.
+    num_all_success_tasks: Number of tasks achieving 100% success rate.
+    num_pass_n_tasks: Number of tasks that succeed at least once.
+    task_pass_rate@1: Average success rate
+    task_pass_rate@2: Number of tasks (proportion of all tasks) that succeed at least once in the first 2 trials
+    task_pass_rate@4: Number of tasks (proportion of all tasks) that succeed at least once in the first 4 trials (optional)
+    task_pass_rate@8: Number of tasks (proportion of all tasks) that succeed at least once in the first 8 trials (optional)
+    mean_reward: Mean validation reward across all data points.
+    std_reward: Reward standard deviation across all data points.
+`ajet.trainer_common.val_before_train` should be True, because we want to capture the initial performance of the model before training.
+`ajet.trainer_common.total_epochs` should be large enough, but you only have `${MaxTime}` hours to run each experiment.
+`ajet.trainer_common.total_training_steps` the max global steps, prior than `ajet.trainer_common.total_epochs` if it is not `null`.
+
+For other configurations, refer to `agentjet/ajet/default_config/ajet_default.yaml`, do not use ANY configurations that is absent in `ajet_default.yaml`,
+
+
 # Auto Research Task
+
 
 ## Task:
 
@@ -18,6 +47,8 @@ You are the main research agent, the research lead, responsible for designing, e
     - What possible outcomes each stage's experiments may yield, and what potential conclusions correspond to each outcome
     - Generate the first batch of experiment yamls in `${subject_dir}/exp_stage_1/blueprints/blueprint_${n}.yaml` for user preview.
     - Generate the first batch of experiment blueprints in `${subject_dir}/exp_stage_1/blueprints/blueprint_${n}.md` for user preview.
+    - Ensure `ajet.trainer_common.train_print_to_markdown_file_path` and `ajet.trainer_common.val_print_to_markdown_file_path` are correct in `${subject_dir}/exp_stage_1/blueprints/blueprint_${n}.yaml`..
+    - Ensure YAML path is written into blueprint (absolute path)
 
 3. [Step 3] Double check the generated yamls and blueprints, ensure they provide valid and effective path and instructions (check "AgentJet YAML Configuration Warnings" and ensure all warnings are addressed). Wait for the user to approve the research plan, or modify it based on user instructions.
 
@@ -193,33 +224,6 @@ Every 10 minutes (sleep 600):
 ## Current Progress:
 
 - If `./${subject_dir}/main_research_agent/progress.md` exists, read the progress; if not, start from stage 1
-
-
-## AgentJet YAML Configuration Warnings:
-
-`ajet.execute_test` should be False, because when enabled, training will be interrupted if the training reward score falls below a pre-defined threshold.
-`ajet.project_name` the current research task name; recommended to keep consistent across all blueprints for easier swanlab curve comparison.
-`ajet.experiment_name` the current experiment name; different blueprints and stages should have different experiment names.
-`ajet.trainer_common.n_gpus_per_node` should be as few as possible.
-`ajet.trainer_common.test_freq` should be `${TestFreq}`. `${TestFreq}=10`.
-`ajet.trainer_common.save_freq` should be large enough; we do not save checkpoints.
-`ajet.trainer_common.train_print_to_markdown_file_path` should be where intermediate training results are stored. Not critical, but should still be specified. This file should be written into `exp_result_dir`.
-`ajet.trainer_common.val_print_to_markdown_file_path` should be where evaluation results are stored. Although you can refer to tmux console logs for data, you should always find evaluation results at this path. This file should also be written into `exp_result_dir`. Val attribute list:
-    pass_n: For each task, how many times to run repeatedly.
-    total_tasks: Number of tasks in the validation dataset.
-    num_all_success_tasks: Number of tasks achieving 100% success rate.
-    num_pass_n_tasks: Number of tasks that succeed at least once.
-    task_pass_rate@1: Average success rate
-    task_pass_rate@2: Number of tasks (proportion of all tasks) that succeed at least once in the first 2 trials
-    task_pass_rate@4: Number of tasks (proportion of all tasks) that succeed at least once in the first 4 trials (optional)
-    task_pass_rate@8: Number of tasks (proportion of all tasks) that succeed at least once in the first 8 trials (optional)
-    mean_reward: Mean validation reward across all data points.
-    std_reward: Reward standard deviation across all data points.
-`ajet.trainer_common.val_before_train` should be True, because we want to capture the initial performance of the model before training.
-`ajet.trainer_common.total_epochs` should be large enough, but you only have `${MaxTime}` hours to run each experiment.
-`ajet.trainer_common.total_training_steps` the max global steps, prior than `ajet.trainer_common.total_epochs` if it is not `null`.
-
-For other configurations, refer to `agentjet/ajet/default_config/ajet_default.yaml`, do not use ANY configurations that is absent in `ajet_default.yaml`,
 
 
 ## AgentJet Launcher Arguments
