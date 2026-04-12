@@ -95,15 +95,26 @@ alpha-rl-resume-planning \
 ## topic 04
 # plan first
 ccfq \
-alpha-rl-cc-new-planning \
+alpha-rl-new-planning \
     --runner=pai \
     --research-topic="research_topic/example_04_ppo_epoch.md"
 
 
 ## topic 04
 # plan first
-ccfq \
-alpha-rl-cc-begin-experiments \
+alpha-rl-new-research-no-human \
     --runner=pai \
-    --research-topic="research_topic/example_04_ppo_epoch.md" \
-    --resume-instruction="permission granted, begin research"
+    --research-topic="research_topic/example_04_ppo_epoch.md"
+
+
+## topic 05
+# plan first
+alpha-rl-new-research-no-human \
+    --runner=ssh \
+    --research-topic="research_topic/example_05_regular_test.md"
+
+#
+alpha-rl-resume-experiment \
+    --runner=pai \
+    --research-topic="research_topic/example_05_regular_test.md" \
+    --resume-instruction="the experiment is running, keep monitoring"

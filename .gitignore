@@ -32,3 +32,8 @@ skills-lock.json
 .playwright-cli
 *.jpg
 mysite*
+research_claudecode.json
+
+# Claude Code local settings (auto-generated)
+.claude/settings.local.json
+saved_experiments

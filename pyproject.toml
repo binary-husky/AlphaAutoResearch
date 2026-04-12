@@ -44,3 +44,11 @@ alpha-rl-cc-resume-planning = "alpha_auto_research.cli_claudecode:resume_plannin
 alpha-rl-cc-begin-experiments = "alpha_auto_research.cli_claudecode:begin_experiments"
 alpha-rl-cc-resume-experiment = "alpha_auto_research.cli_claudecode:resume_experiment"
 alpha-rl-cc-new-research-no-human = "alpha_auto_research.cli_claudecode:new_research_no_human"
+
+# general_runner (unified — supports --backend claude/opencode)
+alpha-rl-general = "alpha_auto_research.general_runner:main"
+alpha-rl-g-new-planning = "alpha_auto_research.cli_general:new_planning"
+alpha-rl-g-resume-planning = "alpha_auto_research.cli_general:resume_planning"
+alpha-rl-g-begin-experiments = "alpha_auto_research.cli_general:begin_experiments"
+alpha-rl-g-resume-experiment = "alpha_auto_research.cli_general:resume_experiment"
+alpha-rl-g-new-research-no-human = "alpha_auto_research.cli_general:new_research_no_human"
