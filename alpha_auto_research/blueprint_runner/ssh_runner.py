@@ -20,17 +20,21 @@ from alpha_auto_research.blueprint_runner.base import ExperimentSubagent
 def _setup_localhost_ssh() -> None:
     """Set up password-free SSH to localhost."""
     ssh_dir = os.path.expanduser("~/.ssh")
-    key_path = os.path.join(ssh_dir, "id_ed25519")
-    pub_key_path = os.path.join(ssh_dir, "id_ed25519.pub")
+    key_path = os.path.join(ssh_dir, "id_ed25519_sk")
+    pub_key_path = os.path.join(ssh_dir, "id_ed25519_sk.pub")
     auth_keys_path = os.path.join(ssh_dir, "authorized_keys")
 
+    print("Setting up password-free SSH to localhost...")
+
     if not os.path.exists(key_path):
+        print("Generating SSH key for localhost...")
         subprocess.run(
             ["ssh-keygen", "-t", "ed25519", "-f", key_path, "-N", ""],
             capture_output=True
         )
 
     if os.path.exists(pub_key_path):
+        print("Generating SSH key for localhost...")
         with open(pub_key_path, "r") as f:
             pub_key = f.read().strip()
         existing = ""

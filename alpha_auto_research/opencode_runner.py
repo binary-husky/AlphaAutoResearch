@@ -264,6 +264,10 @@ def _check_ssh_connectivity() -> None:
     """Verify SSH connectivity to all configured hosts before starting. Exits on failure."""
     from alpha_auto_research.config import config
     from alpha_auto_research.blueprint_runner.ssh_runner import _run_cmd
+    from alpha_auto_research.blueprint_runner.ssh_runner import _setup_localhost_ssh
+
+    _setup_localhost_ssh()
+
     hosts = config.get("ssh", {}).get("hosts", [])
     if not hosts:
         print("[controller message]: WARNING: runner is 'ssh' but no hosts configured.")

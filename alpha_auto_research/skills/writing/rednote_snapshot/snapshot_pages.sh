@@ -11,8 +11,8 @@ set -e
 
 URL="${1:?Usage: bash snapshot_pages.sh <URL> [output_prefix]}"
 PREFIX="${2:-snapshot}"
-VIEWPORT_W=768
-VIEWPORT_H=1280
+VIEWPORT_W=860
+VIEWPORT_H=1680
 SCALE=3
 QUALITY=95
 SESSION="pw"
@@ -249,18 +249,11 @@ for png in "$OUTDIR"/page_*.png; do
     img_w=$(identify -format "%w" "$png")
     img_h=$(identify -format "%h" "$png")
 
-    # Padding in device pixels: left/right 10*scale, top/bottom 20*scale
-    PAD_X=$((10 * SCALE))
-    PAD_Y=$((20 * SCALE))
-
     if [ -n "$crop_h" ] && [ "$crop_h" -gt 0 ] 2>/dev/null; then
         convert "$png" -crop "${img_w}x${crop_h}+0+${offset_y}" +repage \
-            -bordercolor white -border "${PAD_X}x${PAD_Y}" \
             -quality "$QUALITY" "$jpg"
     else
-        convert "$png" \
-            -bordercolor white -border "${PAD_X}x${PAD_Y}" \
-            -quality "$QUALITY" "$jpg"
+        convert "$png" -quality "$QUALITY" "$jpg"
     fi
     rm "$png"
     count=$((count + 1))
@@ -269,6 +262,16 @@ done
 
 echo "=== Closing browser ==="
 pw_run "playwright-cli close" 2
+
+echo "=== Adjusting seams between adjacent pages (+-20%) ==="
+mkdir -p "$OUTDIR"_offset
+python3.11 "$SCRIPTDIR/adjust_seams.py" "$OUTDIR" "$OUTDIR"_offset 0.20 8
+
+echo "=== Stitching adjusted pages into one long image ==="
+LONGDIR="${OUTDIR}_long"
+mkdir -p "$LONGDIR"
+LONG_OUT="$LONGDIR/${PREFIX}_long.png"
+python3.11 "$SCRIPTDIR/stitch_long.py" "${OUTDIR}_offset" "$LONG_OUT" "$QUALITY"
 
 echo "=== Done: $count pages saved to $OUTDIR/ ==="
 ls -lh "$OUTDIR"/*.jpg 2>/dev/null

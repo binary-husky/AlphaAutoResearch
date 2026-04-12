@@ -22,7 +22,7 @@
 
 我们搭建了一套 **Leader-Worker 架构**的自动化研究系统（`alpha_auto_research`），核心思路是：
 
-![Figure 1: Alpha Auto Research Leader-Worker Architecture. Research Topic flows to Leader Agent (6 steps: parse, plan, generate blueprints, dispatch, monitor, analyze), which dispatches 3 Blueprints via PAI DLC to parallel Worker nodes (8x GPU each), results converge back for review and iteration.](https://serve.gptacademic.cn/publish/auto/autoresearchblog/fig_architecture.png)
+![Figure 1: Alpha Auto Research Leader-Worker Architecture. Research Topic (natural language) feeds into the Leader Agent, which runs a vertical cycle of 4 stages — Parse & Plan → Generate Blueprints → Dispatch & Monitor → Analyze & Decide — with a multi-stage iteration loop (coarse search → fine search → report). Blueprints are dispatched to 3 parallel Worker Agents (8×GPU each), results flow back for analysis. The entire system runs 24/7 unattended with auto-recovery, daemon watchdog, breakpoint resume, and API fault tolerance.](https://serve.gptacademic.cn/publish/auto/autoresearchblog/fig_architecture_v2.jpg)
 
 ### 2.1 构建技术栈：廉价且开源友好
 

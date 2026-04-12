@@ -118,3 +118,10 @@ alpha-rl-resume-experiment \
     --runner=pai \
     --research-topic="research_topic/example_05_regular_test.md" \
     --resume-instruction="the experiment is running, keep monitoring"
+
+
+
+
+alpha-rl-new-research-no-human \
+    --runner=ssh \
+    --research-topic="research_topic/example_06_ppo_epoch_and_minibatch.md"

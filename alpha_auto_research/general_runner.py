@@ -596,6 +596,9 @@ def _should_continue(terminated_due_to_permission: bool, running_flag: str) -> b
 def _check_ssh_connectivity() -> None:
     from alpha_auto_research.config import config
     from alpha_auto_research.blueprint_runner.ssh_runner import _run_cmd
+    from alpha_auto_research.blueprint_runner.ssh_runner import _setup_localhost_ssh
+
+    _setup_localhost_ssh()
 
     hosts = config.get("ssh", {}).get("hosts", [])
     if not hosts:
