@@ -160,7 +160,7 @@ def run_opencode(session_title=None,
         assert session_title is not None
         assert opencode_web_url is not None
         assert prompt is not None
-        cmd = ["opencode", "run", "--format", "json", "--title", session_title, "--attach", opencode_web_url, prompt]
+        cmd = ["opencode", "run", "--format", "json", "--title", session_title, prompt]
 
 
     env = {**os.environ, "OPENCODE_CONFIG": _get_opencode_config(skip_permissions)}
@@ -169,32 +169,13 @@ def run_opencode(session_title=None,
     existing_sessions = _get_opencode_sessions() if not continue_mode else {}
 
     command = " ".join(cmd)
+    print('************************')
+    print(command)
+    print('************************')
+
     print_dict({"command": command, "continue_mode": continue_mode, "session_id": session_id, "research_topic": research_topic}, header="Launching opencode")
+
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
-
-    # Detect new session ID right after spawn (only for new sessions)
-    detected_session_id = session_id  # keep existing for continue_mode
-    if not continue_mode:
-        for _ in range(30):  # poll for up to 30 seconds
-            print("[controller message]: detecting new session ID...")
-            time.sleep(1)
-            current_sessions = _get_opencode_sessions()
-            new_session_ids = set(current_sessions) - set(existing_sessions)
-
-            if new_session_ids:
-                detected_session_id = new_session_ids.pop()
-                title = current_sessions[detected_session_id]
-                print_dict({"session_id": detected_session_id, "title": title, "command": command}, header="Created new session")
-                break
-        else:
-            raise RuntimeError("Failed to detect new opencode session ID after 30s. Aborting.")
-    else:
-        current_sessions = _get_opencode_sessions()
-        title = current_sessions[session_id]
-        print_dict({"session_id": session_id, "title": title, "command": command}, header="Resume old session")
-
-
-    terminated_due_to_permission = False
 
     # Drain stdout/stderr via background threads into a queue so the main
     # loop can enforce an idle-timeout watchdog: if no line arrives for
@@ -215,6 +196,34 @@ def run_opencode(session_title=None,
             t.start()
             drainers.append(t)
 
+    # Detect new session ID right after spawn (only for new sessions)
+    detected_session_id = session_id  # keep existing for continue_mode
+    if not continue_mode:
+        for _ in range(30):  # poll for up to 30 seconds
+            print("[controller message]: detecting new session ID...")
+
+            try:
+                item = line_queue.get(timeout=1)
+                print(item)
+            except queue.Empty:
+                ...
+
+            current_sessions = _get_opencode_sessions()
+            new_session_ids = set(current_sessions) - set(existing_sessions)
+
+            if new_session_ids:
+                detected_session_id = new_session_ids.pop()
+                title = current_sessions[detected_session_id]
+                print_dict({"session_id": detected_session_id, "title": title, "command": command}, header="Created new session")
+                break
+        else:
+            raise RuntimeError("Failed to detect new opencode session ID after 30s. Aborting.")
+    else:
+        current_sessions = _get_opencode_sessions()
+        title = current_sessions[session_id]
+        print_dict({"session_id": session_id, "title": title, "command": command}, header="Resume old session")
+
+    terminated_due_to_permission = False
     pending_sentinels = len(drainers)
     watchdog_killed = False
     while pending_sentinels > 0:
@@ -342,6 +351,8 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
 
     session_title = f"research_topic {research_topic} role {role} blueprint {blueprint}"
     session_title = session_title.replace(" ", "_")  # avoid issues with spaces in title
+    session_title = session_title.replace("/", "_")  # avoid issues with spaces in title
+    session_title = session_title.replace(".", "_")  # avoid issues with spaces in title
 
     if runner == "ssh":
         _check_ssh_connectivity()
@@ -481,7 +492,7 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
         print_dict({"end reason": "[controller message]: wait a few seconds before next round."})
         time.sleep(60)  # wait a bit before checking the session status again
 
-    if role == "worker":
+    if role == "worker" and runner == "api":
         still_training = "/still_training"
         if os.path.exists(still_training):
             os.remove(still_training)

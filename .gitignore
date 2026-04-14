@@ -38,3 +38,8 @@ research_claudecode.json
 .claude/settings.local.json
 saved_experiments
 .claude.example
+docs/articles/ppo_epoch_minibatch/exp_stage_1/results/*.png
+site/articles/ppo_epoch_minibatch/exp_stage_1/results/*.png
+site
+alpha_auto_research/skills/writing/rednote_snapshot/snapshots_pages
+alpha_auto_research/skills/writing/rednote_snapshot

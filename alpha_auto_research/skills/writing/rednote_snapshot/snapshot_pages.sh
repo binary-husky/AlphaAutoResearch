@@ -12,7 +12,7 @@ set -e
 URL="${1:?Usage: bash snapshot_pages.sh <URL> [output_prefix]}"
 PREFIX="${2:-snapshot}"
 VIEWPORT_W=860
-VIEWPORT_H=1680
+VIEWPORT_H=1480
 SCALE=3
 QUALITY=95
 SESSION="pw"

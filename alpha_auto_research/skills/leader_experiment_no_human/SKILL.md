@@ -219,6 +219,7 @@ Every 10 minutes (sleep 600):
 - Run `python -m alpha_auto_research.blueprint_runner.stop_jobs --runner=${runner} --stop-job-id=<job_id>` to stop a running job
 - Multiple jobs: `python -m alpha_auto_research.blueprint_runner.stop_jobs --runner=${runner} --stop-job-id=<id1> --stop-job-id=<id2>`
 - To also delete after stopping: add `--delete`
+- Warning: NEVER USE `tmux kill-server`! That is suicide, it will kill ALL tmux sessions on the server!
 
 
 

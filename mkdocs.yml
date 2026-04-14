@@ -3,3 +3,14 @@ site_url: https://mydomain.org/mysite
 theme:
   name: material
   custom_dir: docs/overrides
+
+nav:
+  - Home: index.md
+  - Case Studies:
+      - PPO Epochs & Mini-Batch Num: articles/ppo_epoch_minibatch/index.md
+
+markdown_extensions:
+  - tables
+  - admonition
+  - toc:
+      permalink: true

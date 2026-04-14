@@ -42,8 +42,8 @@ An experiment blueprint is a markdown file (blueprint.md). It contains 7 section
 `ajet.experiment_name` the current experiment name; different blueprints and stages should have different experiment names.
 `ajet.trainer_common.test_freq` specifies how many steps between each evaluation.
 `ajet.trainer_common.n_gpus_per_node` number of GPUs.
-`ajet.trainer_common.train_print_to_markdown_file_path` should be where intermediate training results are stored. Not critical, but should still be specified.
-`ajet.trainer_common.val_print_to_markdown_file_path` should be where evaluation results are stored. Although you can refer to tmux console logs for data, you should always find evaluation results at this path:
+`ajet.trainer_common.train_print_to_markdown_file_path` (must be set) should be where intermediate training results are stored. Not critical, but should still be specified.
+`ajet.trainer_common.val_print_to_markdown_file_path` (must be set) should be where evaluation results are stored. Although you can refer to tmux console logs for data, you should always find evaluation results at this path:
     pass_n: For each task, how many times to run repeatedly.
     total_tasks: Number of tasks in the validation dataset.
     num_all_success_tasks: Number of tasks achieving 100% success rate.
@@ -272,6 +272,8 @@ You must ensure the experiment continues running throughout the [exp_max_time] p
 
     ```
 ```
+
+- Warning: NEVER USE `tmux kill-server`! That is suicide, it will kill ALL tmux sessions on the server!
 
 ## Using GPUs
 
