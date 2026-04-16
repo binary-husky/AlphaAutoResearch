@@ -8,6 +8,7 @@ nav:
   - Home: index.md
   - Case Studies:
       - PPO Epochs & Mini-Batch Num: articles/ppo_epoch_minibatch/index.md
+      - Deep Finance Agent: articles/deep_finance_agent.md
 
 markdown_extensions:
   - tables
