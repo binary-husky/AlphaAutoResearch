@@ -105,7 +105,6 @@ alpha-resume --runner=ssh \
 --resume                   恢复最近的会话
 -r, --resume-instruction   恢复会话时的指令
 --only-run-planning        仅生成方案，不执行实验
---skip-permissions         使用宽松的 Agent 配置（允许所有工具）
 --no-human-in-the-loop     全自动模式，无人工审查步骤
                            （仅限 leader；与 --only-run-planning、
                            --resume 和 -r 冲突）
@@ -250,7 +249,6 @@ alpha_auto_research/
     smart_daemon.py          后台进程管理
   skills/
     leader_experiment/SKILL.md       Leader Agent 指令
-    leader_experiment_no_human/SKILL.md  全自动 Leader（无人工审查）
     worker_experiment/SKILL.md       Worker Agent 指令
 ```
 

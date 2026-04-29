@@ -15,6 +15,8 @@ from alibabacloud_pai_dlc20201203.models import (
     ListJobsRequest,
     CreateJobRequest,
     GetJobRequest,
+    StopJobRequest,
+    DeleteJobRequest,
 )
 from alibabacloud_aiworkspace20210204.client import Client as AIWorkspaceClient
 from alibabacloud_aiworkspace20210204.models import CreateDatasetRequest
@@ -139,14 +141,14 @@ def list_jobs(
 def stop_job(region_id: str, job_id: str):
     """Stop a running/queuing job."""
     client = _get_dlc_client(region_id)
-    client.stop_job(job_id)
+    client.stop_job(job_id, StopJobRequest())
     print(f"Stopped job: {job_id}")
 
 
 def delete_job(region_id: str, job_id: str):
     """Delete a job."""
     client = _get_dlc_client(region_id)
-    client.delete_job(job_id)
+    client.delete_job(job_id, DeleteJobRequest())
     print(f"Deleted job: {job_id}")
 
 

@@ -25,7 +25,8 @@ class PaiExperimentSubagent(ExperimentSubagent):
             rm -rf /root/.local/share/uv && ln -s /mnt/data_cpfs/qingxu.fu/root/.local/share/uv /root/.local/share/uv
             service ssh start && \\
             wget --header="Cache-Control: no-cache" https://public.agent-matrix.com/publish/bashrc/plus/open/best/bashrc_extend.bash && \\
-            bash -i -c "source bashrc_extend.bash && up_rc && rm bashrc_extend.bash" && \\
+            bash -i -c "source bashrc_extend.bash && up_rc && rm bashrc_extend.bash"
+            export SETUPTOOLS_USE_DISTUTILS=local
             echo "set-option -g history-limit 100000" >> ~/.tmux.conf && tmux source-file ~/.tmux.conf && \\
             tmux start-server 2>/dev/null || true && \\
             tmux has-session -t main 2>/dev/null || tmux new-session -d -s main && tmux new-window -n "TRAIN" && \\

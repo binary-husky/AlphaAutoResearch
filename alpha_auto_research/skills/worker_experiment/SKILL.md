@@ -35,15 +35,59 @@ An experiment blueprint is a markdown file (blueprint.md). It contains 7 section
 7. [exp_max_time] Maximum runtime is ${MaxTime}; each experiment is forcefully terminated after ${MaxTime}
 
 
-## YAML Configuration Notes:
+## AgentJet Configuration
+
+WARNING: you must choose from classic mode and swarm mode, according to user instructions or examples.
+
+
+### Classic mode
+
+The clasic mode use `--conf` to load a yaml which containing all the training arguments.
+
+- assign training config yaml: `--conf /path/to/yaml`
+- skip gpu check: `--skip-check-avail-gpu`
+- init ray before training (always to this): `--with-ray`
+- init appworld service before training: `--with-appworld` (must install appworld according to `agentjet/docs/en/example_app_world.md` before you use `--with-appworld`)
+- kill all ray and python (dangerous! never use this one.): `--autokill`
+
+### Swarm mode
+
+AgentJet has a unique swarm training mode.
+AgentJet training network (swarm) is composed by interconnected swarm server and swarm client nodes.
+The number of swarm servers depends on the number of models being trained,
+as each server independently hosts and trains a distinct model.
+While each swarm client runs agents to gather trajectories and send reward back to server for RL training.
+
+To use Swarm Training Mode, first,
+we always start by launching the swarm server in a tmux session:
+
+```bash
+ajet-swarm start --swarm-port=10086
+```
+
+And then run the swarm client (usually a python script) in another tmux session.
+
+Assign training config yaml:
+    - choice 1: in swarm client script, use AgentJetJob to set training arguments
+    - choice 2: in swarm client script, use AgentJetJob's base_yaml_config config (optional) to assign the yaml path, and then change the yaml to alter training configurations.
+    - configuration priority (highest to lowest):
+        - general config kwargs in AgentJetJob's init
+        - base_yaml_config config argument in AgentJetJob's init (yaml file configuration)
+        - the default base_yaml_config: agentjet_codebase/ajet/default_config/ajet_swarm_default.yaml
+    - configuration coverage:
+        - general config kwargs in AgentJetJob's init covers the most important configurations.
+        - yaml config covers all configurations.
+
+
+### YAML Configuration Notes:
 
 `ajet.execute_test` should be False, because when enabled, training will be interrupted if the training reward score falls below a pre-defined threshold.
-`ajet.project_name` the current research task name; recommended to keep consistent across all blueprints for easier swanlab curve comparison.
-`ajet.experiment_name` the current experiment name; different blueprints and stages should have different experiment names.
+`ajet.project_name` the current research task name; recommended to keep consistent across all blueprints for easier swanlab curve comparison. (In swarm mode, please set AgentJetJob(project_name=...) to override this.)
+`ajet.experiment_name` the current experiment name; different blueprints and stages should have different experiment names. (In swarm mode, please set AgentJetJob(experiment_name=...) to override this.)
 `ajet.trainer_common.test_freq` specifies how many steps between each evaluation.
-`ajet.trainer_common.n_gpus_per_node` number of GPUs.
-`ajet.trainer_common.train_print_to_markdown_file_path` (must be set) should be where intermediate training results are stored. Not critical, but should still be specified.
-`ajet.trainer_common.val_print_to_markdown_file_path` (must be set) should be where evaluation results are stored. Although you can refer to tmux console logs for data, you should always find evaluation results at this path:
+`ajet.trainer_common.n_gpus_per_node` number of GPUs. (In swarm mode, please set AgentJetJob(n_gpu=...) to override this.)
+`ajet.trainer_common.train_print_to_markdown_file_path` (must be set) should be where intermediate training results are stored. Not critical, but should still be specified. (In swarm mode, please set AgentJetJob(train_print_to_markdown_file_path=...) to override this.)
+`ajet.trainer_common.val_print_to_markdown_file_path` (must be set) should be where evaluation results are stored. Although you can refer to tmux console logs for data, you should always find evaluation results at this path: (In swarm mode, please set AgentJetJob(val_print_to_markdown_file_path=...) to override this.)
     pass_n: For each task, how many times to run repeatedly.
     total_tasks: Number of tasks in the validation dataset.
     num_all_success_tasks: Number of tasks achieving 100% success rate.
@@ -56,24 +100,50 @@ An experiment blueprint is a markdown file (blueprint.md). It contains 7 section
     std_reward: Reward standard deviation across all data points.
 `ajet.trainer_common.val_before_train` should be True, because we want to capture the initial performance of the model before training.
 `ajet.trainer_common.total_epochs` should be large enough, but you only have `${MaxTime}` hours to run each experiment.
-`ajet.trainer_common.total_training_steps` the max global steps, prior than `ajet.trainer_common.total_epochs` if it is not `null`.
+`ajet.trainer_common.total_training_steps` the max global steps, prior than `ajet.trainer_common.total_epochs` if it is not `null`. (In swarm mode, please set AgentJetJob(total_training_steps=...) to override this.)
+`ajet.experiment_dir` directory where experiment outputs will be saved. (In swarm mode, please set AgentJetJob(experiment_dir=...) to override this.)
+`ajet.trainer_common.logger` logger backend, e.g. `swanlab`, `tensorboard`. (In swarm mode, please set AgentJetJob(logging=...) to override this.)
+`ajet.model.path` path or identifier of the model to train. (In swarm mode, please set AgentJetJob(model=...) to override this.)
+`ajet.trainer_common.algorithm.adv_estimator` advantage estimator algorithm, e.g. `grpo`, `gae`, `vtrace`. (In swarm mode, please set AgentJetJob(algorithm=...) to override this.)
+`ajet.rollout.num_repeat` how many repeated samples the swarm server should expect for each `task_id`. (In swarm mode, please set AgentJetJob(num_repeat=...) to override this.)
+`ajet.data.train_batch_size` training batch size — watermark to flush the buffer pool and trigger an LLM weight update. (In swarm mode, please set AgentJetJob(batch_size=...) to override this.)
+`ajet.enable_swarm_mode` whether to enable swarm-mode distributed sample collection. (In swarm mode, please set AgentJetJob(swarm_mode=...) to override this.)
+`ajet.swarm_mode_sample_collection_method` stop-condition for batch collection. One of `rollout_until_finish_enough_episodes`, `rollout_until_finish_enough_tasks` (default, guarantees full GRPO groups), or `rollout_until_finish_enough_non_dummy_tasks` (skips tasks whose `num_repeat` episodes all share the same reward). (In swarm mode, please set AgentJetJob(swarm_mode_sample_collection_method=...) to override this.)
+`ajet.rollout.max_env_worker` estimated number of episodes running in parallel across all swarm clients. (In swarm mode, please set AgentJetJob(max_env_worker=...) to override this.)
+`ajet.backbone` training backbone framework, e.g. `verl`. (In swarm mode, please set AgentJetJob(backbone=...) to override this.)
+`ajet.data.max_prompt_length` max input prompt token length (default 3000). (In swarm mode, please set AgentJetJob(max_prompt_length=...) to override this.)
+`ajet.data.max_response_length` max model response token length (default 15000). (In swarm mode, please set AgentJetJob(max_response_length=...) to override this.)
+`ajet.rollout.max_response_length_in_one_turn` max response token length in a single turn (default 4096, must be ≤ `max_response_length`). (In swarm mode, please set AgentJetJob(max_response_length_in_one_turn=...) to override this.)
+`ajet.rollout.max_model_len` max total token length prompt+response (default 18000; bigger ⇒ more GPU memory). (In swarm mode, please set AgentJetJob(max_model_len=...) to override this.)
+`ajet.rollout.max_num_seqs` max sequences processed in parallel per vLLM engine (default 64). (In swarm mode, please set AgentJetJob(max_num_seqs=...) to override this.)
+`ajet.trainer_common.mini_batch_num` number of mini-batches per training batch (= number of `optimizer.step()` calls per big batch). (In swarm mode, please set AgentJetJob(mini_batch_num=...) to override this.)
+`ajet.lora.lora_rank` LoRA rank; > 0 enables LoRA (default 0). (In swarm mode, please set AgentJetJob(lora_rank=...) to override this.)
+`ajet.lora.lora_alpha` LoRA alpha scaling factor (default 16). (In swarm mode, please set AgentJetJob(lora_alpha=...) to override this.)
+`ajet.lora.target_modules` LoRA target modules (default `all-linear`). (In swarm mode, please set AgentJetJob(lora_target_modules=...) to override this.)
+`ajet.lora.load_format` LoRA weight load format (default `auto`; must be `safetensors` when `lora_rank > 0`). (In swarm mode, please set AgentJetJob(lora_load_format=...) to override this.)
+`ajet.lora.layered_summon` enable layered summon for LoRA (must be `True` when `lora_rank > 0`). (In swarm mode, please set AgentJetJob(layered_summon=...) to override this.)
+`ajet.rollout.gpu_memory_utilization` vLLM engine GPU memory utilization (default 0.85). (In swarm mode, please set AgentJetJob(gpu_memory_utilization=...) to override this.)
+`ajet.trainer_common.optim.lr` optimizer learning rate (default 1e-6; usually > 1e-5 for LoRA). (In swarm mode, please set AgentJetJob(lr=...) to override this.)
+`ajet.trainer_common.ppo_epochs` PPO epochs per update (default 1). (In swarm mode, please set AgentJetJob(ppo_epochs=...) to override this.)
+`ajet.rollout.compute_madness_checklist` madness checks to detect abnormal generation, e.g. `["nonsense"]` to catch infinite-repeat patterns. (In swarm mode, please set AgentJetJob(compute_madness_checklist=...) to override this.)
 
-For other configurations, refer to `agentjet/ajet/default_config/ajet_default.yaml`, do not use ANY configurations that is absent in `ajet_default.yaml`,
+AgentJetJob also takes two init-only kwargs that don't map to a yaml key:
+- `ensure_new_experiment` (default `False`): when True, appends `_YYYYMMDD-HHMMSS` to `experiment_name` so each launch is unique.
+- `base_yaml_config`: path to the base YAML; defaults to `ajet/default_config/ajet_swarm_default.yaml`.
 
-## AgentJet Launcher Arguments
+For other configurations, refer to `agentjet/ajet/default_config/ajet_default.yaml` and the AgentJetJob (ajet/copilot/job.py), do not use ANY configurations that is absent in `ajet_default.yaml`.
 
-- assign training config yaml: `--conf /path/to/yaml`
-- skip gpu check: `--skip-check-avail-gpu`
-- init ray before training (always to this): `--with-ray`
-- init appworld service before training: `--with-appworld` (must install appworld according to `agentjet/docs/en/example_app_world.md` before you use `--with-appworld`)
-- kill all ray and python (dangerous! never use this one.): `--autokill`
+In swarm training mode, for configurations that is covered by yaml but not covered by AgentJetJob's general config kwargs, please create a yaml file and set the path to AgentJetJob's base_yaml_config config argument.
+
+In swarm training mode, for configurations that is covered by AgentJetJob's general config kwargs, please directly set the value in AgentJetJob's init, and this will override any yaml configuration for this argument.
+
 
 ## Running Experiments with tmux
 
 See the "Experiment Monitoring Skill" section below. Note: when creating a session, the session name must contain the keyword `ajet` and reflect `exp_purpose`, e.g. `ajet_math_top_k_ablation`.
 
 
-## Do Not Terminate Running Experiments Lightly
+## Do Not Terminate Running Experiments Without Careful Consideration
 
 You must ensure the experiment continues running throughout the [exp_max_time] period. Exceptions:
 
@@ -221,7 +291,8 @@ You must ensure the experiment continues running throughout the [exp_max_time] p
     ....
 
     # Create tmux session for training (note: session name must contain the keyword `ajet`)
-    $ tmux new-session -d -s ajet_session -c "/foo/bar/venv"
+    # note, you are absolutely NOT allowed to attach command in `tmux new-session`, because you need to send commands via `tmux send-keys` in the tmux session after it is created!
+    $ tmux new-session -d -s ajet_session -c "/foo/bar/venv" # do not add any command after tmux new-session! Because you need to send commands via `tmux send-keys` !
     ...
 
     # Send SSH command to tmux session
@@ -291,5 +362,11 @@ And never use `--autokill` argument, that will destory all running experiments r
 - You must not edit `research_config.jsonc` in any circumstances!
 - When encounter any error, you should check experiment blueprint, and double check you have followed all the instructions in the blueprint (e.g. venv, additional service installation)!
 - You can ignore all hermes_tool_parser errors, they do not matter.
-- Do not use `sleep` ! use `tmux_wait.py` instead.
 - when you see **KeyboardInterrupt**, that means I'm **angry** that you ignore **terrible errors** printed in console and let experiment resume and waste time.
+- Do not use `sleep` ! use `tmux_wait.py` instead.
+- Do not use `sleep` ! use `tmux_wait.py` instead.
+- Do not use `sleep` ! use `tmux_wait.py` instead.
+- Do not use `sleep` ! use `tmux_wait.py` instead.
+- Do not use `sleep` ! use `tmux_wait.py` instead.
+- Do not use `sleep` ! use `tmux_wait.py` instead.
+- Do not use `sleep` ! use `tmux_wait.py` instead.

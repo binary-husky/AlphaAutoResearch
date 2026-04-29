@@ -32,22 +32,12 @@ _PACKAGE_DIR = Path(__file__).resolve().parent
 _RESEARCH_OPENCODE_JSON = Path.cwd() / "research_opencode.json"
 
 
-def _get_opencode_config(skip_permissions: bool = False) -> str:
-    """Return the path to the opencode config to use.
-
-    If skip_permissions is True, creates research_opencode.yolo.json in cwd
-    with permissive permissions and returns its path.
-    Otherwise returns the path to research_opencode.json.
-    """
-    if not skip_permissions:
-        return str(_RESEARCH_OPENCODE_JSON)
-    dst = Path.cwd() / "research_opencode.yolo.json"
-    with open(_RESEARCH_OPENCODE_JSON, "r") as f:
-        config = json.load(f)
-    config["permission"] = {"*": {"*": "allow"}}
-    with open(dst, "w") as f:
-        json.dump(config, f, indent=2)
-    return str(dst)
+def _get_opencode_config(role) -> str:
+    """Return the opencode config path, preferring research_opencode.{role}.json if present."""
+    override = Path.cwd() / f"research_opencode.{role}.json"
+    if override.exists():
+        return str(override)
+    return str(Path.cwd() / "research_opencode.json")
 
 
 def _load_research_opencode_config() -> None:
@@ -123,14 +113,14 @@ def _delete_opencode_session_from_title(title="") -> None:
 
 
 
-def run_opencode(session_title=None,
+def run_opencode(role=None,
+                 session_title=None,
                  opencode_web_url=None,
                  prompt=None,
                  continue_mode=False,
                  session_id=None,
                  need_permission_error_fix=False,
                  resume_instruction="",
-                 skip_permissions=False,
                  research_topic="") -> tuple[int, bool, str | None]:
     """Run opencode and return (returncode, terminated_due_to_permission, session_id).
 
@@ -163,7 +153,7 @@ def run_opencode(session_title=None,
         cmd = ["opencode", "run", "--format", "json", "--title", session_title, prompt]
 
 
-    env = {**os.environ, "OPENCODE_CONFIG": _get_opencode_config(skip_permissions)}
+    env = {**os.environ, "OPENCODE_CONFIG": _get_opencode_config(role)}
 
     # Snapshot existing sessions before spawning so we can detect the new one
     existing_sessions = _get_opencode_sessions() if not continue_mode else {}
@@ -259,10 +249,10 @@ def run_opencode(session_title=None,
     return process.returncode, terminated_due_to_permission, detected_session_id
 
 
-def _ensure_opencode_web(skip_permissions=False, role="leader"):
+def _ensure_opencode_web(role="leader"):
     from alpha_auto_research.utils.smart_daemon import LaunchCommandWhenAbsent
 
-    env_dict = {**os.environ, "OPENCODE_CONFIG": _get_opencode_config(skip_permissions)}
+    env_dict = {**os.environ, "OPENCODE_CONFIG": _get_opencode_config(role)}
 
     print("[controller message]: Starting opencode web...")
     opencode_web = LaunchCommandWhenAbsent(
@@ -342,7 +332,7 @@ def _check_ssh_connectivity() -> None:
 
 def run(research_topic: str = "", blueprint:str="", role: str = "",
         resume_latest_session: bool = False, resume_instruction: str = "",
-        only_run_planning: bool = False, skip_permissions: bool = False,
+        only_run_planning: bool = False,
         no_human_in_the_loop: bool = False, runner: str = "ssh") -> int:
 
     _load_research_opencode_config()
@@ -364,13 +354,10 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
         assert role == "leader", "--no-human-in-the-loop is only applicable for leader role"
         assert not only_run_planning, "--no-human-in-the-loop conflicts with --only-run-planning"
         assert not resume_latest_session, "--no-human-in-the-loop conflicts with --resume"
-        assert not resume_instruction, "--no-human-in-the-loop conflicts with --resume-instruction"
 
     if role == "leader":
-        if no_human_in_the_loop:
-            leader_skill_path = str(_PACKAGE_DIR / "skills" / "leader_experiment_no_human" / "SKILL.md")
-        else:
-            leader_skill_path = str(_PACKAGE_DIR / "skills" / "leader_experiment" / "SKILL.md")
+
+        leader_skill_path = str(_PACKAGE_DIR / "skills" / "leader_experiment" / "SKILL.md")
         assert os.path.exists(leader_skill_path), f"skill not found: {leader_skill_path}"
 
         if os.path.exists(research_topic):
@@ -391,11 +378,12 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
             "You are the main research agent, the research lead, responsible for designing, evaluating, and dispatching research plans.\n"
             f"current runner is **{runner}** runner.\n"
             f"---\n"
-            f"Experiment skill:"
+            f"Experiment skill (HUMAN-INTERACTION-WHEN-PLANNING={not no_human_in_the_loop}):"
             f"---\n"
             f"{skill_content}\n"
             f"---\n"
             f"After all experiments are complete and the final report is written, please delete {running_flag}\n"
+            f"---\n"
             f"{research_topic_text}\n"
             f"---\n"
 
@@ -434,7 +422,7 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
         prompt += "---\n"
         prompt += "Special warning: to run multiple experiments in parallel in same server, you need to arrange CUDA_VISIBLE_DEVICES for each experiment in experiment blueprint.\n"
 
-    _ensure_opencode_web(skip_permissions=skip_permissions, role=role)
+    _ensure_opencode_web(role=role)
 
     print("[controller message]: run opencode 1st ...")
     session_id = None
@@ -450,6 +438,7 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
         # delete existing session with the same title to avoid confusion
         _delete_opencode_session_from_title(title=session_title)
         returncode, terminated_due_to_permission, session_id = run_opencode(
+            role=role,
             session_title=session_title,
             opencode_web_url="http://localhost:4096",
             prompt=prompt,
@@ -457,7 +446,6 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
             session_id=None,
             need_permission_error_fix=False,
             resume_instruction="",
-            skip_permissions=skip_permissions,
             research_topic=research_topic
         )
         print(f"[controller message]: Session ID from first run: {session_id}")
@@ -471,6 +459,7 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
         print("[controller message]: Continuing session ...")
         if session_id:
             returncode, terminated_due_to_permission, _ = run_opencode(
+                role=role,
                 session_title=None,
                 opencode_web_url=None,
                 prompt=None,
@@ -478,7 +467,6 @@ def run(research_topic: str = "", blueprint:str="", role: str = "",
                 session_id=session_id,
                 need_permission_error_fix=terminated_due_to_permission,
                 resume_instruction=resume_instruction,
-                skip_permissions=skip_permissions,
                 research_topic=research_topic,
             )
             resume_instruction = ""  # only apply the resume_instruction for one time
@@ -518,7 +506,6 @@ def main():
         sp.add_argument("--resume", "--resume-latest-session", action="store_true", dest="resume_latest_session", help="Resume the latest session")
         sp.add_argument("-r", "--resume-instruction", default="", dest="resume_instruction", help="Instruction for resuming")
         sp.add_argument("--only-run-planning", action="store_true", help="Run once and exit")
-        sp.add_argument("--skip-permissions", action="store_true", help="Use permissive opencode config (allow all tools)")
         if sp_name == "leader":
             sp.add_argument("--no-human-in-the-loop", action="store_true", help="Run fully autonomous without human review (uses no_human skill)")
     args = parser.parse_args()
@@ -530,7 +517,6 @@ def main():
         resume_latest_session=args.resume_latest_session,
         resume_instruction=args.resume_instruction,
         only_run_planning=args.only_run_planning,
-        skip_permissions=args.skip_permissions,
         no_human_in_the_loop=getattr(args, "no_human_in_the_loop", False),
         runner=args.runner,
     )

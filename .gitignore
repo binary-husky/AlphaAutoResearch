@@ -1,7 +1,6 @@
 # Secrets
 research_config.jsonc
 research_opencode.json
-research_opencode.yolo.json
 
 # Data directories (local working data)
 topics/
@@ -44,3 +43,10 @@ site
 alpha_auto_research/skills/writing/rednote_snapshot/snapshots_pages
 alpha_auto_research/skills/writing/rednote_snapshot
 research_progress/
+rednote_output_pages/
+.trash
+docs/rednote*
+docs/articles/rednote*
+rednote_output/rednote*
+research_opencode.worker.json
+research_opencode.leader.json

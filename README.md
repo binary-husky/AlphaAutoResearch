@@ -106,7 +106,6 @@ All accept `--topic=<path>` and `--runner=<ssh|pai>` (defaults to ssh). The `-r 
 --resume                   Resume the latest session
 -r, --resume-instruction   Instruction for the resumed session
 --only-run-planning        Generate plan only, don't execute experiments
---skip-permissions         Use permissive agent config (allow all tools)
 --no-human-in-the-loop     Fully autonomous role, no human review steps
                            (leader only; conflicts with --only-run-planning,
                            --resume, and -r)
@@ -252,7 +251,6 @@ alpha_auto_research/
     smart_daemon.py          Detached process management
   skills/
     leader_experiment/SKILL.md       Leader agent instructions
-    leader_experiment_no_human/SKILL.md  Autonomous leader (no human review)
     worker_experiment/SKILL.md       Worker agent instructions
 ```
 

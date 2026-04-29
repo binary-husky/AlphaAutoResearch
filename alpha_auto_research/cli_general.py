@@ -12,7 +12,7 @@ from alpha_auto_research.general_runner import main as _main
 
 
 def _inject_and_run(extra_args: list[str]):
-    sys.argv = [sys.argv[0], "leader", "--runner", "ssh", "--skip-permissions", *extra_args, *sys.argv[1:]]
+    sys.argv = [sys.argv[0], "leader", "--runner", "ssh", *extra_args, *sys.argv[1:]]
     _main()
 
 
